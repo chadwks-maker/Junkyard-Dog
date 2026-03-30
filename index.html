@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<title>Junkyard Dog</title>
+<meta name="description" content="Your AI-powered email, calendar, and Teams agent"/>
+<meta name="theme-color" content="#1a56db"/>
+<meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Junkyard Dog"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./jd-icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="./jd-icon-192.png"/>
+<style>
+:root{--bg:#0a0a0f;--bg2:#111118;--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0eff5;--text2:rgba(240,239,245,0.55);--text3:rgba(240,239,245,0.28);--accent:#7c6af7;--accent2:#9b8cf9;--accent-bg:rgba(124,106,247,0.15);--green:#34d399;--green-bg:rgba(52,211,153,0.12);--amber:#fbbf24;--amber-bg:rgba(251,191,36,0.12);--red:#f87171;--red-bg:rgba(248,113,113,0.12);--blue:#60a5fa;--blue-bg:rgba(96,165,250,0.12);--r:999px;--r-md:14px;--r-lg:20px;--font:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;--mono:'Consolas','Menlo',monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:var(--font);font-weight:300;background:var(--bg);color:var(--text);font-size:14px;letter-spacing:0.01em;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 10%,rgba(124,106,247,0.12) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(96,165,250,0.08) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 60% 30%,rgba(52,211,153,0.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+#app{display:flex;flex-direction:column;height:100vh;position:relative;z-index:1;}
+#titlebar{height:52px;background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:14px;flex-shrink:0;}
+#titlebar span{color:var(--text);font-size:14px;font-weight:500;letter-spacing:0.02em;}
+.body{display:flex;flex:1;overflow:hidden;}
+#sidebar{width:220px;flex-shrink:0;background:rgba(10,10,15,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px 0;gap:1px;overflow-y:auto;}
+#sidebar-logo{display:flex;align-items:center;gap:12px;padding:10px 18px 18px;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.logo-text{color:var(--text);font-size:14px;font-weight:500;letter-spacing:0.02em;}
+.sec{font-size:10px;font-weight:500;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px 4px;}
+.navbtn{display:flex;align-items:center;gap:10px;padding:9px 18px;font-size:13px;font-weight:300;color:var(--text2);cursor:pointer;background:none;border:none;border-left:2px solid transparent;width:100%;text-align:left;font-family:var(--font);transition:all .15s;letter-spacing:0.01em;}
+.navbtn:hover{background:var(--glass);color:var(--text);}
+.navbtn.active{background:var(--glass2);color:var(--text);font-weight:400;border-left-color:var(--accent);}
+.navbtn svg{width:15px;height:15px;flex-shrink:0;opacity:0.7;}
+.navbtn.active svg{opacity:1;}
+.nbadge{margin-left:auto;font-size:10px;background:var(--accent);color:#fff;border-radius:var(--r);padding:2px 7px;font-weight:500;}
+.nbadge.ok{background:var(--green);color:#000;}
+#conn-box{margin-top:auto;padding:14px 16px 10px;border-top:1px solid var(--border);}
+#conn-box .ct{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.chip{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text3);padding:3px 0;font-weight:300;}
+.chip .dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0;}
+.chip.on{color:var(--green);}.chip.on .dot{background:var(--green);}
+.chip.partial{color:var(--amber);}.chip.partial .dot{background:var(--amber);}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:transparent;}
+.panel{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.panel.active{display:flex;}
+.phead{padding:10px 18px 9px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.phead-t{font-size:15px;font-weight:500;color:var(--text);letter-spacing:0.01em;}
+.phead-s{font-size:12px;color:var(--text3);margin-top:2px;font-weight:300;}
+#chatmsgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;}
+.msg{display:flex;gap:10px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;flex-shrink:0;}
+.avatar.ai{background:var(--accent-bg);color:var(--accent2);border:1px solid rgba(124,106,247,0.2);}
+.avatar.me{background:var(--glass2);color:var(--text2);border:1px solid var(--border);}
+.bubble{padding:9px 14px;font-size:13px;line-height:1.6;max-width:84%;font-weight:300;}
+.msg.ai .bubble{background:var(--glass2);border:1px solid var(--border);color:var(--text);border-radius:4px 18px 18px 18px;}
+.msg.user .bubble{background:var(--accent-bg);border:1px solid rgba(124,106,247,0.25);color:var(--accent2);border-radius:18px 4px 18px 18px;}
+.quickbtn{display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);padding:8px 12px;cursor:pointer;font-size:12px;color:var(--text2);text-align:left;width:100%;margin-top:4px;font-family:var(--font);font-weight:300;transition:all .15s;}
+.quickbtn:hover{background:var(--glass2);color:var(--text);border-color:var(--border2);}
+.quickbtn svg{width:14px;height:14px;color:var(--accent);flex-shrink:0;}
+.quickbtn-t{font-weight:400;color:var(--text);}
+.quickbtn-s{font-size:11.5px;color:var(--text3);margin-top:2px;font-weight:300;}
+.pills{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 8px;}
+.pill{font-size:11.5px;padding:4px 12px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;background:var(--glass);color:var(--text2);transition:all .15s;font-family:var(--font);font-weight:300;}
+.pill:hover{background:var(--accent-bg);border-color:rgba(124,106,247,0.4);color:var(--accent2);}
+#chatinput-row{display:flex;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.65);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);}
+#chatinput{flex:1;padding:10px 16px;font-size:13px;font-weight:300;border:1px solid var(--border);border-radius:var(--r);background:var(--glass);color:var(--text);outline:none;font-family:var(--font);}
+#chatinput::placeholder{color:var(--text3);}
+#chatinput:focus{border-color:rgba(124,106,247,0.4);background:var(--glass2);}
+#sendbtn{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:400;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font);transition:all .15s;}
+#sendbtn:hover{background:var(--accent2);transform:translateY(-1px);}
+#sendbtn:disabled{opacity:.35;cursor:not-allowed;transform:none;}
+.typing-dots{display:flex;gap:5px;padding:3px 0;}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:bounce 1.2s infinite;}
+.typing-dots span:nth-child(2){animation-delay:.2s;}.typing-dots span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-5px);}}
+.list-wrap{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.evt-card{display:flex;gap:10px;padding:9px 12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);cursor:pointer;transition:all .15s;}
+.evt-card:hover{background:var(--glass2);border-color:var(--border2);}
+.evt-time{font-size:11px;color:var(--text3);min-width:54px;margin-top:2px;font-weight:300;}
+.evt-bar{width:2px;border-radius:2px;align-self:stretch;flex-shrink:0;}
+.evt-title{font-size:13px;font-weight:400;color:var(--text);}
+.evt-sub{font-size:11.5px;color:var(--text3);margin-top:3px;font-weight:300;}
+.mail-item{display:flex;gap:10px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;background:transparent;}
+.mail-item:hover{background:var(--glass);}
+.mail-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0;}
+.mail-from{font-size:13px;font-weight:400;color:var(--text);}
+.mail-subj{font-size:12.5px;color:var(--text2);font-weight:300;}
+.mail-prev{font-size:11.5px;color:var(--text3);font-weight:300;}
+.mail-meta{margin-left:auto;font-size:11px;color:var(--text3);text-align:right;flex-shrink:0;font-weight:300;}
+.unread-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);}
+.mail-actions{display:none;gap:5px;}
+.mail-item:hover .mail-actions{display:flex;}
+.mail-check{width:14px;height:14px;cursor:pointer;flex-shrink:0;accent-color:var(--accent);}
+.mail-act-btn{padding:4px 12px;font-size:11.5px;border-radius:var(--r);cursor:pointer;border:1px solid var(--border);background:var(--glass);color:var(--text2);font-family:var(--font);font-weight:300;white-space:nowrap;transition:all .12s;}
+.mail-act-btn:hover{background:var(--glass2);color:var(--text);}
+.mail-act-btn.red{border-color:rgba(248,113,113,0.3);color:var(--red);}.mail-act-btn.red:hover{background:var(--red-bg);}
+.mail-act-btn.blue{border-color:rgba(96,165,250,0.3);color:var(--blue);}.mail-act-btn.blue:hover{background:var(--blue-bg);}
+.mail-act-btn.green{border-color:rgba(52,211,153,0.3);color:var(--green);}.mail-act-btn.green:hover{background:var(--green-bg);}
+.mail-selected{background:var(--accent-bg) !important;}
+.gfilter{padding:3px 11px;font-size:11.5px;border:1px solid var(--border);border-radius:var(--r);cursor:pointer;background:var(--glass);color:var(--text2);font-family:var(--font);font-weight:300;transition:all .12s;}
+.gfilter:hover{background:var(--glass2);color:var(--text);}
+.gfilter.active{background:var(--accent-bg);color:var(--accent2);border-color:rgba(124,106,247,0.35);}
+#gmail-bulk-bar{display:none;padding:8px 18px;background:var(--accent-bg);border-bottom:1px solid rgba(124,106,247,0.2);align-items:center;gap:8px;}
+.teams-ch{background:var(--glass);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;margin-bottom:8px;}
+.teams-ch-hdr{display:flex;align-items:center;gap:9px;padding:11px 14px;background:var(--glass2);border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.teams-ch-hdr:hover{background:rgba(255,255,255,0.09);}
+.teams-ch-name{font-size:13px;font-weight:400;color:var(--text);}
+.teams-ch-sub{font-size:11px;color:var(--text3);font-weight:300;}
+.teams-msg{padding:9px 14px;font-size:12.5px;color:var(--text2);border-bottom:1px solid var(--border);line-height:1.55;font-weight:300;}
+.teams-msg:last-child{border-bottom:none;}
+.teams-sender{font-weight:400;color:var(--text);margin-right:5px;}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:48px;text-align:center;}
+.empty svg{opacity:.15;}
+.empty-title{font-size:16px;font-weight:400;color:var(--text);letter-spacing:0.01em;}
+.empty-sub{font-size:13px;color:var(--text3);max-width:280px;line-height:1.65;font-weight:300;}
+.btn-blue{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:400;cursor:pointer;font-family:var(--font);letter-spacing:0.02em;transition:all .15s;}
+.btn-blue:hover{background:var(--accent2);transform:translateY(-1px);}
+.spin-row{display:flex;align-items:center;gap:10px;padding:20px 22px;font-size:13px;color:var(--text3);font-weight:300;}
+.spinner{width:16px;height:16px;border:1.5px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#compose-modal{display:none;position:absolute;bottom:0;right:0;width:440px;background:rgba(12,12,20,0.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border2);border-bottom:none;border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -8px 40px rgba(0,0,0,0.5);z-index:100;flex-direction:column;}
+#setup-scroll{flex:1;overflow-y:auto;padding:22px;background:transparent;}
+.setup-section{background:var(--glass);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:10px;}
+.setup-section-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:5px;letter-spacing:0.01em;}
+.setup-section-sub{font-size:12.5px;color:var(--text3);margin-bottom:12px;line-height:1.6;font-weight:300;}
+.step{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start;}
+.step-n{width:24px;height:24px;border-radius:50%;background:var(--accent-bg);color:var(--accent2);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;border:1px solid rgba(124,106,247,0.2);}
+.step-title{font-size:13px;font-weight:400;color:var(--text);}
+.step-desc{font-size:12px;color:var(--text3);margin-top:3px;line-height:1.55;font-weight:300;}
+.step-code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-top:7px;color:var(--text2);word-break:break-all;line-height:1.6;display:block;}
+.field-group{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.field-group label{font-size:12.5px;font-weight:400;color:var(--text2);min-width:115px;}
+.field-group input{flex:1;padding:9px 14px;font-size:12.5px;font-family:var(--mono);border:1px solid var(--border);border-radius:var(--r);background:var(--glass);color:var(--text);outline:none;}
+.field-group input::placeholder{color:var(--text3);}
+.field-group input:focus{border-color:rgba(124,106,247,0.4);background:var(--glass2);}
+.btn-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.btn-primary{padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:400;cursor:pointer;font-family:var(--font);letter-spacing:0.02em;transition:all .15s;}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);}
+.btn-secondary{padding:10px 22px;background:var(--glass);color:var(--text2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;font-weight:300;cursor:pointer;font-family:var(--font);transition:all .15s;display:none;}
+.btn-secondary:hover{background:var(--glass2);color:var(--text);}
+.status-ok{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--green-bg);color:var(--green);border:1px solid rgba(52,211,153,0.2);border-radius:12px;font-size:12.5px;margin-top:10px;font-weight:300;}
+.status-err{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--red-bg);color:var(--red);border:1px solid rgba(248,113,113,0.2);border-radius:12px;font-size:12.5px;margin-top:10px;font-weight:300;}
+.status-info{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(96,165,250,0.2);border-radius:12px;font-size:12.5px;margin-top:10px;font-weight:300;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(16,16,26,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:var(--text);padding:11px 22px;border-radius:var(--r);font-size:13px;font-weight:400;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;border:1px solid var(--border2);}
+.toast.show{opacity:1;}
+.tag{display:inline-block;font-size:10.5px;padding:3px 10px;border-radius:var(--r);font-weight:400;margin-right:4px;}
+.t-blue{background:var(--blue-bg);color:var(--blue);}.t-green{background:var(--green-bg);color:var(--green);}
+.t-amber{background:var(--amber-bg);color:var(--amber);}.t-purple{background:var(--accent-bg);color:var(--accent2);}
+.day-lbl{font-size:11px;color:var(--text3);padding:4px 0 10px;font-weight:300;letter-spacing:0.04em;text-transform:uppercase;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+:root{--safe-bottom:env(safe-area-inset-bottom,0px);}
+@media(max-width:768px){#sidebar{display:none;}#main{padding-bottom:calc(62px + var(--safe-bottom));}.mail-actions{display:flex;}#compose-modal{width:100% !important;left:0 !important;right:0 !important;border-radius:var(--r-lg) var(--r-lg) 0 0;}.mail-item{padding:9px 12px;}#setup-scroll{padding:12px;}.setup-section{padding:14px;}}
+
+/* ── Topbar & Tab Nav ─────────────────────────────────────────────── */
+#topbar{display:flex;align-items:center;padding:0 14px;height:48px;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;gap:0;overflow:hidden;}
+#topnav{display:flex;align-items:center;flex:1;gap:1px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+#topnav::-webkit-scrollbar{display:none;}
+.tnav{display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:12.5px;font-weight:300;color:rgba(240,239,245,0.45);cursor:pointer;background:none;border:none;border-radius:var(--r);font-family:var(--font);white-space:nowrap;transition:all .15s;letter-spacing:0.01em;}
+.tnav:hover{color:var(--text);background:rgba(255,255,255,0.06);}
+.tnav.active{color:var(--text);background:rgba(124,106,247,0.18);font-weight:400;}
+.tnav svg{flex-shrink:0;opacity:0.7;}
+.tnav.active svg{opacity:1;}
+/* Hide old titlebar and sidebar since topbar replaces them */
+#titlebar{display:none !important;}
+#sidebar{display:none !important;}
+/* App fills remaining height */
+#app{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+</style>
+</head>
+<body>
+
+
+<!-- TOPBAR: robot dog + horizontal tabs -->
+<div id="topbar">
+  <div style="display:flex;align-items:center;gap:10px;padding-right:18px;border-right:1px solid rgba(255,255,255,0.08);margin-right:6px;flex-shrink:0;">
+    <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect x="28" y="52" width="44" height="30" rx="8" fill="#7c6af7" opacity="0.9"/><rect x="30" y="22" width="40" height="34" rx="7" fill="#7c6af7"/><line x1="50" y1="22" x2="50" y2="10" stroke="#9b8cf9" stroke-width="2.5" stroke-linecap="round"/><circle cx="50" cy="8" r="3.5" fill="#60a5fa"/><rect x="36" y="30" width="10" height="7" rx="2" fill="#0a0a0f"/><rect x="54" y="30" width="10" height="7" rx="2" fill="#0a0a0f"/><rect x="38" y="32" width="6" height="3" rx="1" fill="#60a5fa" opacity="0.9"/><rect x="56" y="32" width="6" height="3" rx="1" fill="#60a5fa" opacity="0.9"/><rect x="37" y="43" width="26" height="8" rx="3" fill="#0a0a0f" opacity="0.6"/><rect x="40" y="45" width="4" height="4" rx="1" fill="#34d399" opacity="0.8"/><rect x="46" y="45" width="4" height="4" rx="1" fill="#34d399" opacity="0.5"/><rect x="52" y="45" width="4" height="4" rx="1" fill="#34d399" opacity="0.8"/><rect x="38" y="52" width="24" height="5" rx="2.5" fill="#5b52c4"/><rect x="32" y="79" width="12" height="14" rx="4" fill="#5b52c4"/><rect x="56" y="79" width="12" height="14" rx="4" fill="#5b52c4"/><rect x="14" y="55" width="16" height="8" rx="4" fill="#5b52c4"/><rect x="70" y="55" width="16" height="8" rx="4" fill="#5b52c4"/><rect x="38" y="60" width="24" height="14" rx="4" fill="#0a0a0f" opacity="0.4"/><circle cx="44" cy="67" r="3" fill="#7c6af7" opacity="0.8"/><circle cx="50" cy="67" r="3" fill="#60a5fa" opacity="0.8"/><circle cx="56" cy="67" r="3" fill="#34d399" opacity="0.8"/></svg>
+    <span style="font-size:13px;font-weight:500;color:#f0eff5;white-space:nowrap;">Junkyard Dog</span>
+  </div>
+  <div id="topnav">
+    <button class="tnav active" id="tnav-chat" onclick="showPanel('chat',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Chat</button>
+    <button class="tnav" id="tnav-gcal" onclick="showPanel('gcal',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</button>
+    <button class="tnav" id="tnav-gmail" onclick="showPanel('gmail',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Gmail<span class="nbadge" id="badge-gmail">!</span></button>
+    <button class="tnav" id="tnav-outlook" onclick="showPanel('outlook',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Outlook<span class="nbadge" id="badge-outlook">!</span></button>
+    <button class="tnav" id="tnav-teams" onclick="showPanel('teams',this)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Teams<span class="nbadge" id="badge-teams">!</span></button>
+    <button class="tnav" id="tnav-setup" onclick="showPanel('setup',this)" style="margin-left:auto;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>Setup<span class="nbadge" id="badge-setup">2</span></button>
+  </div>
+</div>
+<!-- hidden chips needed by JS -->
+<div style="display:none;"><div id="chip-gcal"></div><div id="chip-gmail"></div><div id="chip-outlook"></div><div id="chip-teams"></div></div>
+
+<div id="app">
+  <div id="main">
+
+
+    <!-- CHAT -->
+    <div class="panel active" id="panel-chat" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <!-- Input pinned at top -->
+      <div id="chatinput-row" style="order:1;">
+        <input id="chatinput" type="text" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button id="sendbtn" onclick="sendChat()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send
+        </button>
+      </div>
+      <!-- Quick pills just below input -->
+      <div class="pills" style="order:2;">
+        <button class="pill" onclick="ask('What meetings do I have this week?')">Schedule</button>
+        <button class="pill" onclick="ask('Triage my inbox — summarize unread emails and flag urgent ones')">Triage inbox</button>
+        <button class="pill" onclick="ask('Block 2 hours tomorrow morning for deep work')">Focus time</button>
+        <button class="pill" onclick="ask('Draft a partner status update for the e2open TMS project')">Draft email</button>
+        <button class="pill" onclick="ask('What is my availability next week for a 1-hour meeting?')">Free time</button>
+      </div>
+      <!-- Messages fill remaining space below -->
+      <div id="chatmsgs" style="order:3;flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;">
+        <div class="msg ai">
+          <div class="avatar ai">AI</div>
+          <div class="bubble">Hi Chad! Ask me anything above, or tap a quick action.</div>
+        </div>
+        <div class="msg ai" id="typing-msg" style="display:none;">
+          <div class="avatar ai">AI</div>
+          <div class="bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GCAL -->
+    <div class="panel" id="panel-gcal">
+      <div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);flex-shrink:0;gap:8px;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;">Calendar</span>
+        <span id="gcal-sub" style="font-size:11px;color:var(--text3);font-weight:300;"></span>
+        <button onclick="qa('Create a new calendar event — TMS review, next Monday 2pm, 1 hour');showPanel('chat',document.querySelectorAll('.navbtn')[0])" style="padding:3px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--font);">+ New</button>
+      </div>
+      <div class="empty" id="gcal-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <div class="empty-title">Google Calendar not connected</div>
+        <div class="empty-sub">Connect your Google account in Setup to view real calendar events.</div>
+        <button class="btn-blue" onclick="showPanel('setup', document.querySelectorAll('.navbtn')[6])">Go to Setup</button>
+      </div>
+      <div class="spin-row" id="gcal-loading" style="display:none;"><div class="spinner"></div>Loading events...</div>
+      <div class="list-wrap" id="gcal-list" style="display:none;"></div>
+    </div>
+
+    <!-- GMAIL -->
+    <div class="panel" id="panel-gmail" style="position:relative;">
+      <div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);flex-shrink:0;gap:8px;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;">Gmail</span>
+        <span id="gmail-sub" style="font-size:11px;color:var(--text3);font-weight:300;"></span>
+        <button onclick="gmailCompose()" style="padding:3px 10px;background:var(--accent);border:none;border-radius:var(--r);font-size:11px;color:#fff;cursor:pointer;font-family:var(--font);">+ Compose</button><button onclick="forceLoadGmail()" style="padding:3px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--font);">&#8635;</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div id="gmail-filters" style="display:none;padding:5px 12px;border-bottom:1px solid var(--border);background:transparent;flex-wrap:wrap;gap:4px;align-items:center;">
+        <button class="gfilter active" onclick="setGmailFilter('unread',this)">Unread</button>
+        <button class="gfilter" onclick="setGmailFilter('all',this)">All</button>
+        <button class="gfilter" onclick="setGmailFilter('starred',this)">Starred</button>
+        <button class="gfilter" onclick="setGmailFilter('important',this)">Important</button>
+        <button class="gfilter" onclick="setGmailFilter('from:me',this)">Sent</button>
+        <input id="gmail-search" type="text" placeholder="Search mail..." onkeydown="if(event.key==='Enter')searchGmail()" style="margin-left:auto;padding:4px 9px;font-size:12px;border:1px solid #d1d5db;border-radius:6px;width:160px;outline:none;background:#fff;color:#111;font-family:inherit;"/>
+        <button onclick="searchGmail()" style="padding:4px 10px;background:#1a56db;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;">Search</button>
+      </div>
+
+      <!-- Bulk action bar (shown when emails selected) -->
+      <div id="gmail-bulk-bar" style="display:none;padding:7px 16px;background:#eff6ff;border-bottom:1px solid #bfdbfe;align-items:center;gap:8px;">
+        <span id="bulk-count" style="font-size:12.5px;font-weight:600;color:#1e40af;"></span>
+        <button onclick="bulkAction('delete')" style="padding:4px 12px;background:#dc2626;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">Delete</button>
+        <button onclick="bulkAction('archive')" style="padding:4px 12px;background:#6b7280;color:#fff;border:none;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;">Archive</button>
+        <button onclick="bulkAction('markRead')" style="padding:4px 12px;background:#fff;color:#333;border:1px solid #d1d5db;border-radius:5px;font-size:12px;cursor:pointer;">Mark read</button>
+        <button onclick="bulkAction('star')" style="padding:4px 12px;background:#fff;color:#333;border:1px solid #d1d5db;border-radius:5px;font-size:12px;cursor:pointer;">⭐ Star</button>
+        <button onclick="clearSelection()" style="margin-left:auto;padding:4px 10px;background:none;color:#6b7280;border:none;font-size:12px;cursor:pointer;">✕ Clear</button>
+      </div>
+
+      <div class="empty" id="gmail-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div class="empty-title" id="gmail-empty-title">Gmail not connected</div>
+        <div class="empty-sub" id="gmail-empty-sub">Connect your Google account in Setup to read and manage Gmail.</div>
+        <div id="gmail-test-result" style="font-size:12px;color:#555;max-width:320px;text-align:center;line-height:1.6;margin-top:4px;"></div>
+        <button class="btn-blue" onclick="gmailDirectTest()" style="background:#059669;">Test Connection</button>
+        <button class="btn-blue" onclick="showPanel('setup', document.querySelectorAll('.navbtn')[6])">Go to Setup</button>
+      </div>
+      <div class="spin-row" id="gmail-loading" style="display:none;"><div class="spinner"></div>Loading inbox...</div>
+      <div id="gmail-list" style="display:none;overflow-y:auto;flex:1;"></div>
+
+      <!-- Compose / Reply modal -->
+      <div id="compose-modal" style="display:none;position:absolute;bottom:0;right:0;width:440px;background:#fff;border:1px solid #d1d5db;border-radius:10px 10px 0 0;box-shadow:0 -4px 24px rgba(0,0,0,.12);z-index:100;flex-direction:column;">
+        <div style="display:flex;align-items:center;padding:10px 14px;background:#1a56db;border-radius:10px 10px 0 0;">
+          <span id="compose-title" style="font-size:13px;font-weight:600;color:#fff;flex:1;">New Message</span>
+          <button onclick="closeCompose()" style="background:none;border:none;color:rgba(255,255,255,.8);font-size:18px;cursor:pointer;line-height:1;">✕</button>
+        </div>
+        <div style="padding:10px 14px;border-bottom:1px solid #e5e7eb;">
+          <input id="compose-to" type="text" placeholder="To" style="width:100%;padding:5px 0;font-size:13px;border:none;border-bottom:1px solid #e5e7eb;outline:none;color:#111;font-family:inherit;background:transparent;margin-bottom:6px;"/>
+          <input id="compose-subject" type="text" placeholder="Subject" style="width:100%;padding:5px 0;font-size:13px;border:none;outline:none;color:#111;font-family:inherit;background:transparent;"/>
+        </div>
+        <textarea id="compose-body" rows="8" placeholder="Write your message..." style="width:100%;padding:12px 14px;font-size:13px;border:none;outline:none;resize:none;color:#111;font-family:inherit;background:#fff;"></textarea>
+        <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #e5e7eb;">
+          <button onclick="sendComposedEmail()" style="padding:7px 18px;background:#1a56db;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">Send</button>
+          <button onclick="aiDraftEmail()" style="padding:7px 14px;background:#059669;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;">✦ AI Draft</button>
+          <button onclick="closeCompose()" style="margin-left:auto;padding:7px 14px;background:none;color:#6b7280;border:1px solid #d1d5db;border-radius:6px;font-size:13px;cursor:pointer;">Discard</button>
+        </div>
+      </div>
+    </div>
+
+<!-- OUTLOOK -->
+    <div class="panel" id="panel-outlook">
+      <div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);flex-shrink:0;gap:8px;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;">Outlook</span>
+        <span id="outlook-sub" style="font-size:11px;color:var(--text3);font-weight:300;"></span>
+        
+      </div>
+      <div class="empty" id="outlook-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <div class="empty-title">Outlook not connected</div>
+        <div class="empty-sub">Add Azure credentials in Setup to connect Outlook via Microsoft Graph.</div>
+        <button class="btn-blue" onclick="showPanel('setup', document.querySelectorAll('.navbtn')[6])">Go to Setup</button>
+      </div>
+      <div class="spin-row" id="outlook-loading" style="display:none;"><div class="spinner"></div>Loading Outlook mail...</div>
+      <div id="outlook-list" style="display:none;overflow-y:auto;flex:1;"></div>
+    </div>
+
+    <!-- TEAMS -->
+    <div class="panel" id="panel-teams">
+      <div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);flex-shrink:0;gap:8px;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;">Teams</span>
+        <span id="teams-sub" style="font-size:11px;color:var(--text3);font-weight:300;"></span>
+        
+      </div>
+      <div class="empty" id="teams-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <div class="empty-title">Teams not connected</div>
+        <div class="empty-sub">Add Azure credentials in Setup to connect Teams channels.</div>
+        <button class="btn-blue" onclick="showPanel('setup', document.querySelectorAll('.navbtn')[6])">Go to Setup</button>
+      </div>
+      <div id="teams-live" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div id="teams-list" style="overflow-y:auto;flex:1;padding:12px 14px;"></div>
+        <div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #e0e0e0;background:#fff;">
+          <input id="teams-input" type="text" placeholder="Post a message to a Teams channel..." style="flex:1;padding:8px 12px;font-size:13px;border:1.5px solid #d1d5db;border-radius:8px;background:#fafafa;color:#111;outline:none;font-family:inherit;" onkeydown="if(event.key==='Enter')teamsPost()"/>
+          <button onclick="teamsPost()" style="padding:8px 16px;background:#1a56db;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">Post</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="panel" id="panel-setup">
+      <div style="display:flex;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.5);flex-shrink:0;gap:8px;">
+        <span style="font-size:13px;font-weight:500;color:var(--text);flex:1;">Setup</span>
+        <span id="setup-sub-dummy" style="font-size:11px;color:var(--text3);font-weight:300;"></span>
+        
+      </div>
+      <div id="setup-scroll">
+        <!-- Honeypot fields to prevent browser password manager interference -->
+        <input type="text" style="display:none;" autocomplete="username"/>
+        <input type="password" style="display:none;" autocomplete="new-password"/>
+
+        <div class="setup-section">
+          <div class="setup-section-title">Anthropic API Key — AI Agent</div>
+          <div class="setup-section-sub">Required for the AI Chat to work. Get your key from console.anthropic.com.</div>
+
+          <details style="margin-bottom:12px;">
+            <summary style="font-size:12px;color:var(--accent2);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              Show setup steps
+            </summary>
+          <div class="step"><div class="step-n">1</div><div><div class="step-title">Go to console.anthropic.com</div><div class="step-desc">Sign in or create a free account</div></div></div>
+          <div class="step"><div class="step-n">2</div><div><div class="step-title">API Keys → Create Key</div><div class="step-desc">Give it a name like "Junkyard Dog" and copy the key — it starts with <code style="background:#f5f5f5;padding:1px 5px;border-radius:3px;">sk-ant-</code></div></div></div>
+          <div class="step"><div class="step-n">3</div><div><div class="step-title">Paste it below</div><div class="step-desc">The key is stored only in your browser session and never sent anywhere except Anthropic's API.</div></div></div>
+
+          </details>
+          <div class="field-group">
+            <label>Anthropic API Key</label>
+            <input id="anthropic-key" type="text" placeholder="sk-ant-..." autocomplete="new-password" autocomplete="off" spellcheck="false"
+              oninput="onAnthropicKeyChange()"
+              style="flex:1;padding:8px 11px;font-size:12.5px;font-family:monospace;border:1.5px solid #d1d5db;border-radius:7px;color:#111;background:#fafafa;outline:none;"/>
+          </div>
+          <div id="anthropic-status"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            <input type="checkbox" id="remember-keys" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;"
+              onchange="toggleRememberKeys(this.checked)"/>
+            <label for="remember-keys" style="font-size:12px;color:var(--text2);cursor:pointer;font-weight:300;">
+              Remember keys between sessions
+            </label>
+            <span style="font-size:11px;color:var(--text3);">(saves to localStorage)</span>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <div class="setup-section-title">Google — Calendar &amp; Gmail</div>
+          <div class="setup-section-sub" style="margin-bottom:12px;">Connect your Google account for Calendar and Gmail access.</div>
+
+          <details style="margin-bottom:14px;">
+            <summary style="font-size:12px;color:var(--accent2);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              Show setup steps
+            </summary>
+            <div style="margin-top:8px;">
+              <div class="step"><div class="step-n">1</div><div><div class="step-title">Create a Google Cloud project</div><div class="step-desc">console.cloud.google.com → New Project → name it "Junkyard Dog"</div></div></div>
+              <div class="step"><div class="step-n">2</div><div><div class="step-title">Enable Calendar API + Gmail API</div><div class="step-desc">APIs &amp; Services → Library → search and enable both</div></div></div>
+              <div class="step"><div class="step-n">3</div><div><div class="step-title">Create OAuth credentials → Web application</div><div class="step-desc">Credentials → Create → OAuth client ID → <strong>Web application</strong>. Add this exact URL as an authorised redirect URI:</div><code class="step-code">https://jyd.netlify.app/index.html</code></div></div>
+              <div class="step"><div class="step-n">4</div><div><div class="step-title">Add yourself as test user</div><div class="step-desc">OAuth consent screen → External → add your Gmail as test user → add scopes: calendar, gmail.readonly, gmail.send</div></div></div>
+              <div class="step"><div class="step-n">5</div><div><div class="step-title">Add Client ID + Secret to Netlify env vars</div><div class="step-desc">Netlify → Site settings → Environment variables → add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET. Then redeploy.</div></div></div>
+            </div>
+          </details>
+
+          <div class="field-group">
+            <label>Google Client ID</label>
+            <input id="g-client-id" type="text" placeholder="xxxxxxxxxxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false"/>
+          </div>
+          <div id="g-status"></div>
+          <button onclick="checkTokenStatus()" style="margin-top:8px;padding:5px 14px;background:var(--glass);border:1px solid var(--border);border-radius:var(--r);font-size:11.5px;color:var(--text2);cursor:pointer;font-family:var(--font);">Check token status</button>
+          <div id="g-token-status" style="margin-top:8px;font-size:12px;line-height:1.8;color:var(--text2);"></div>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="googleAuth()">Sign in with Google</button>
+            
+            <button class="btn-secondary" id="g-disconnect" onclick="googleDisconnect()">Disconnect</button>
+            <button style="background:none;border:none;color:var(--text3);font-size:11.5px;cursor:pointer;padding:4px 0;font-family:var(--font);" onclick="document.getElementById('g-manual-section').style.display='block'">Use OAuth Playground instead</button>
+          </div>
+
+          <div id="g-manual-section" style="display:none;margin-top:12px;padding:12px 14px;background:var(--glass2);border:1px solid var(--border);border-radius:10px;">
+            <div style="font-size:13px;font-weight:400;color:var(--text);margin-bottom:6px;">Or paste an access token manually (OAuth Playground fallback)</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.5;">
+              Get a token from <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:var(--accent2);">OAuth Playground</a> and paste it below.<br>
+              With <b>Remember keys</b> checked, JD saves it and auto-refreshes every hour via the Netlify function.
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input id="g-token-input" type="text" placeholder="Paste access_token from OAuth Playground..." autocomplete="off" spellcheck="false" style="flex:1;padding:8px 11px;font-size:12px;font-family:monospace;border:1px solid var(--border);border-radius:var(--r);color:var(--text);background:var(--glass);outline:none;"/>
+              <button onclick="googleSubmitCode()" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:400;cursor:pointer;white-space:nowrap;font-family:var(--font);">Connect</button>
+              <button onclick="googleAuth()" style="padding:8px 14px;background:var(--glass2);color:var(--accent2);border:1px solid rgba(124,106,247,0.3);border-radius:var(--r);font-size:12px;cursor:pointer;white-space:nowrap;font-family:var(--font);">Get token ↗</button>
+              <button onclick="testToken()" style="padding:8px 14px;background:var(--glass2);color:var(--text2);border:1px solid var(--border);border-radius:var(--r);font-size:13px;cursor:pointer;white-space:nowrap;font-family:var(--font);">Test</button>
+            </div>
+            <div id="token-test-result" style="margin-top:8px;"></div>
+          </div>
+        </div>
+
+        <div class="setup-section">
+          <div class="setup-section-title">Microsoft — Outlook &amp; Teams</div>
+          <div class="setup-section-sub" style="margin-bottom:8px;">Register an Azure AD app to connect Outlook and Teams.</div>
+          <details style="margin-bottom:12px;">
+            <summary style="font-size:12px;color:var(--accent2);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:6px 0;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              Show setup steps
+            </summary>
+
+          <div class="step"><div class="step-n">1</div><div><div class="step-title">Azure AD → App registrations → New registration</div><div class="step-desc">portal.azure.com → Azure Active Directory → App registrations → New registration → name "Junkyard Dog"</div></div></div>
+          <div class="step"><div class="step-n">2</div><div><div class="step-title">Set redirect URI (Single-page application)</div><code class="step-code">https://login.microsoftonline.com/common/oauth2/nativeclient</code></div></div>
+          <div class="step"><div class="step-n">3</div><div><div class="step-title">Add delegated permissions</div><code class="step-code">Mail.Read · Mail.Send · Calendars.ReadWrite · Chat.Read · Chat.ReadWrite · ChannelMessage.Read.All · User.Read</code></div></div>
+          <div class="step"><div class="step-n">4</div><div><div class="step-title">Grant admin consent, copy Tenant ID + Client ID</div><div class="step-desc">Click "Grant admin consent" then copy both IDs from the App registration Overview page.</div></div></div>
+
+          </details>
+          <div class="field-group">
+            <label>Tenant ID</label>
+            <input id="ms-tenant-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" data-lpignore="true" data-form-type="other" spellcheck="false"/>
+          </div>
+          <div class="field-group">
+            <label>Client ID</label>
+            <input id="ms-client-id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" data-lpignore="true" data-form-type="other" spellcheck="false"/>
+          </div>
+          <div id="ms-status"></div>
+          <div class="btn-row">
+            <button class="btn-primary" onclick="msAuth()">Sign in with Microsoft</button>
+            <button class="btn-secondary" id="ms-disconnect" onclick="msDisconnect()">Disconnect</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+'use strict';
+// Detect file:// protocol — Google APIs won't work due to CORS
+
+
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let gToken = null, msToken = null, chatHistory = [];
+
+const G_SCOPES = [
+  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.send',
+  'https://www.googleapis.com/auth/userinfo.email'
+].join(' ');
+
+const SYS = 'You are Junkyard Dog, a unified productivity agent for Chad. You have real-time access to calendar and email data. Chad works on e2open TMS partner enablement. Be concise and action-oriented.';
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function showPanel(id, btn) {
+  document.querySelectorAll('.navbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+  if (btn) btn.classList.add('active');
+  var p = document.getElementById('panel-' + id);
+  if (p) { p.classList.add('active'); p.style.display = 'flex'; }
+  // Always attempt load — token may have been set after panel was first rendered
+  if (id === 'gcal') {
+    if (gToken) { loadCalendar(); }
+    else { show('gcal-empty','flex'); hide('gcal-loading'); hide('gcal-list'); }
+  } else if (id === 'gmail') {
+    if (gToken) {
+      loadGmail();
+    } else {
+      // Check sessionStorage — token may exist but not restored yet
+      var savedTok = null;
+      try { savedTok = sessionStorage.getItem('jd_gtoken'); } catch(e) {}
+      if (savedTok) {
+        gToken = savedTok;
+        onGoogleOk();
+      } else {
+        show('gmail-empty','flex');
+        hide('gmail-loading');
+        hide('gmail-list');
+      }
+    }
+  } else if (id === 'outlook') {
+    if (msToken) { loadOutlook(); }
+    else { show('outlook-empty','flex'); }
+  } else if (id === 'teams') {
+    if (msToken) { loadTeams(); }
+    else { show('teams-empty','flex'); hide('teams-live'); }
+  }
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+function addMsg(role, html) {
+  const isAI = role === 'ai';
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (isAI ? 'ai' : 'user');
+  const avatarClass = isAI ? 'ai' : 'me';
+  const avatarLabel = isAI ? 'AI' : 'CH';
+  wrap.innerHTML = '<div class="avatar ' + avatarClass + '">' + avatarLabel + '</div><div class="bubble">' + html + '</div>';
+  document.getElementById('typing-msg').before(wrap);
+  document.getElementById('chatmsgs').scrollTop = 99999;
+}
+
+function ask(text) { showPanel('chat', document.querySelectorAll('.navbtn')[0]); document.getElementById('chatinput').value = text; sendChat(); }
+
+async function sendChat() {
+  const input = document.getElementById('chatinput');
+  const btn = document.getElementById('sendbtn');
+  const text = input.value.trim();
+  if (!text || btn.disabled) return;
+  input.value = ''; btn.disabled = true;
+  addMsg('user', text);
+
+  const anthropicKey = document.getElementById('anthropic-key').value.trim();
+  if (!anthropicKey) {
+    document.getElementById('typing-msg').style.display = 'none';
+    addMsg('ai', 'Please add your Anthropic API key in <strong>Setup</strong> to use the AI agent.');
+    btn.disabled = false;
+    return;
+  }
+
+  // Build live data context
+  let ctx = [];
+  if (gToken) {
+    try {
+      const e = await fetchCalEvents();
+      if (e.length) ctx.push('CALENDAR (next 7 days):\n' + e.map(ev => '- [ID:' + ev.id + '] ' + ev.summary + ' @ ' + ev.start?.dateTime||ev.start?.date).join('\n'));
+    } catch(e){}
+    try {
+      const msgs = gmailMessages.length ? gmailMessages : await fetchGmailMsgs(10, currentFilter);
+      if (msgs.length) ctx.push('GMAIL INBOX:\n' + msgs.map(m => '- [ID:' + m.id + '] From:' + m.from + ' | Subject:' + m.subject + ' | ' + (m.unread?'UNREAD':'read') + ' | Snippet:' + m.snippet?.substring(0,80)).join('\n'));
+    } catch(e){}
+  }
+
+  const contextBlock = ctx.length ? '\n\n[LIVE DATA]\n' + ctx.join('\n\n') : '';
+
+  // System prompt — full action authority
+  const watchedStr = watchedSenders.length
+    ? '\n\nACTIVE AUTO-REPLY RULES:\n' + watchedSenders.map(w => '- When email from ' + w.email + ': reply with "' + w.reply + '"').join('\n')
+    : '';
+
+  const ACTION_DOCS = [
+    'delete_email: {"action":"delete_email","id":"MSG_ID","confirm":"..."}',
+    'archive_email: {"action":"archive_email","id":"MSG_ID","confirm":"..."}',
+    'mark_read: {"action":"mark_read","id":"MSG_ID","confirm":"..."}',
+    'reply_email: {"action":"reply_email","id":"MSG_ID","to":"EMAIL","subject":"SUBJECT","body":"BODY","confirm":"..."}',
+    'send_email: {"action":"send_email","to":"EMAIL","subject":"SUBJECT","body":"BODY","confirm":"..."}',
+    'add_watch: {"action":"add_watch","email":"SENDER_EMAIL","reply":"AUTO REPLY TEXT","confirm":"..."}',
+    'remove_watch: {"action":"remove_watch","email":"SENDER_EMAIL","confirm":"..."}',
+    'create_event: {"action":"create_event","summary":"TITLE","start":"2026-03-28T10:00:00","end":"2026-03-28T11:00:00","description":"NOTES","confirm":"..."}',
+    'delete_event: {"action":"delete_event","id":"EVENT_ID","confirm":"..."}'
+  ].join('\n');
+
+  const systemPrompt = 'You are Junkyard Dog (JD), Chad\'s AI agent with FULL authority over Gmail and Google Calendar. '
+    + 'You MUST execute real actions when asked — never say you cannot do something that is in the action list. '
+    + 'You can delete, archive, reply to, and send emails, set auto-reply rules, and manage calendar events. '
+    + '\n\nTo execute an action, include a code block tagged ```action with a JSON object. Example for replying:\n'
+    + '```action\n{"action":"reply_email","id":"MSG_ID","to":"email@example.com","subject":"Re: Subject","body":"Your reply here","confirm":"Replied to X"}\n```'
+    + '\n\nALL AVAILABLE ACTIONS:\n' + ACTION_DOCS
+    + '\n\nRULES:\n'
+    + '- Use real MESSAGE_IDs from the live data context — never fabricate IDs\n'
+    + '- For add_watch: set the rule AND immediately reply if sender already has email in inbox\n'
+    + '- You can chain multiple action blocks in one response\n'
+    + '- Write a brief explanation before each action block\n'
+    + '- Sign outgoing emails as Chad unless told otherwise\n'
+    + '- Chad works on e2open TMS partner enablement'
+    + watchedStr;
+
+    const userContent = text + contextBlock;
+  chatHistory.push({ role: 'user', content: userContent });
+
+  document.getElementById('typing-msg').style.display = 'flex';
+  document.getElementById('chatmsgs').scrollTop = 99999;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        system: systemPrompt,
+        messages: chatHistory
+      })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const rawReply = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n') || 'No response.';
+
+    document.getElementById('typing-msg').style.display = 'none';
+
+    // Extract and execute any action blocks
+    const actionResults = await executeActions(rawReply);
+
+    // Strip action blocks from displayed reply, show clean text
+    const cleanReply = rawReply.replace(/```action[\s\S]*?```/g, '').trim();
+    const displayReply = cleanReply + (actionResults.length ? '<br><br>' + actionResults.map(r =>
+      '<span style="display:inline-flex;align-items:center;gap:6px;background:' + (r.ok?'#f0fdf4':'#fef2f2') + ';color:' + (r.ok?'#166534':'#991b1b') + ';padding:5px 10px;border-radius:6px;font-size:12.5px;border:1px solid ' + (r.ok?'#bbf7d0':'#fecaca') + ';">' + (r.ok?'✓':'✗') + ' ' + r.msg + '</span>'
+    ).join(' ') : '');
+
+    addMsg('ai', displayReply.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>'));
+    chatHistory.push({ role: 'assistant', content: rawReply });
+
+    // Refresh gmail list if any email actions were taken
+    if (actionResults.some(r => r.ok && r.type?.includes('email'))) {
+      setTimeout(() => loadGmail(), 800);
+    }
+
+  } catch(e) {
+    document.getElementById('typing-msg').style.display = 'none';
+    addMsg('ai', 'Error: ' + (e.message || 'Connection failed.'));
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+// ── Action executor ───────────────────────────────────────────────────────────
+async function executeActions(text) {
+  const results = [];
+  const actionRegex = /```action\s*([\s\S]*?)```/g;
+  let match;
+
+  while ((match = actionRegex.exec(text)) !== null) {
+    let parsed;
+    try { parsed = JSON.parse(match[1].trim()); }
+    catch(e) { results.push({ ok:false, msg:'Could not parse action', type:'parse_error' }); continue; }
+
+    try {
+      const { action, id, to, subject, body, summary, start, end, description, confirm } = parsed;
+
+      if (action === 'delete_email') {
+        await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/trash');
+        gmailMessages = gmailMessages.filter(m=>m.id!==id);
+        results.push({ ok:true, msg: confirm || 'Email deleted', type:'email' });
+
+      } else if (action === 'archive_email') {
+        await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{removeLabelIds:['INBOX']});
+        gmailMessages = gmailMessages.filter(m=>m.id!==id);
+        results.push({ ok:true, msg: confirm || 'Email archived', type:'email' });
+
+      } else if (action === 'mark_read') {
+        await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{removeLabelIds:['UNREAD']});
+        const msg = gmailMessages.find(m=>m.id===id);
+        if (msg) msg.unread = false;
+        results.push({ ok:true, msg: confirm || 'Marked as read', type:'email' });
+
+      } else if (action === 'reply_email') {
+        const threadId = gmailMessages.find(m=>m.id===id)?.threadId;
+        await sendEmail(to, subject, body, threadId);
+        await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{removeLabelIds:['UNREAD']});
+        results.push({ ok:true, msg: confirm || 'Reply sent', type:'email' });
+
+      } else if (action === 'send_email') {
+        await sendEmail(to, subject, body);
+        results.push({ ok:true, msg: confirm || 'Email sent', type:'email' });
+
+      } else if (action === 'create_event') {
+        await gAction('https://www.googleapis.com/calendar/v3/calendars/primary/events','POST',{
+          summary, description: description||'',
+          start:{ dateTime: start, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+          end:{ dateTime: end, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
+        });
+        results.push({ ok:true, msg: confirm || 'Event created', type:'calendar' });
+
+      } else if (action === 'delete_event') {
+        await gAction('https://www.googleapis.com/calendar/v3/calendars/primary/events/' + id,'DELETE');
+        results.push({ ok:true, msg: confirm || 'Event deleted', type:'calendar' });
+
+      } else if (action === 'add_watch') {
+        // Remove existing rule for same email if any
+        watchedSenders = watchedSenders.filter(w => w.email.toLowerCase() !== parsed.email.toLowerCase());
+        watchedSenders.push({ email: parsed.email, reply: parsed.reply });
+        // Check if sender already has an unread email right now — reply immediately
+        const existing = gmailMessages.find(m => m.from.toLowerCase().includes(parsed.email.toLowerCase()) && m.unread);
+        if (existing) {
+          const threadId = existing.threadId;
+          const replySubject = existing.subject.startsWith('Re:') ? existing.subject : 'Re: ' + existing.subject;
+          await sendEmail(existing.from, replySubject, parsed.reply, threadId);
+          await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + existing.id + '/modify','POST',{removeLabelIds:['UNREAD']});
+          results.push({ ok:true, msg: 'Auto-reply rule set + replied immediately to ' + parsed.email, type:'watch' });
+          setTimeout(() => loadGmail(), 800);
+        } else {
+          results.push({ ok:true, msg: confirm || 'Auto-reply rule set for ' + parsed.email, type:'watch' });
+        }
+
+      } else if (action === 'remove_watch') {
+        watchedSenders = watchedSenders.filter(w => w.email.toLowerCase() !== parsed.email.toLowerCase());
+        results.push({ ok:true, msg: confirm || 'Auto-reply rule removed for ' + parsed.email, type:'watch' });
+
+      } else {
+        results.push({ ok:false, msg:'Unknown action: ' + action, type:'unknown' });
+      }
+
+    } catch(e) {
+      results.push({ ok:false, msg:(parsed.action||'Action') + ' failed: ' + e.message, type:'error' });
+    }
+  }
+
+  return results;
+}
+
+
+function teamsPost() {
+  const v = document.getElementById('teams-input').value.trim();
+  if (!v) return;
+  document.getElementById('teams-input').value = '';
+  ask('Post this to the e2open TMS General Teams channel: ' + v);
+}
+
+// ── Google OAuth ──────────────────────────────────────────────────────────────
+function googleAuth() {
+  var cid = document.getElementById('g-client-id').value.trim();
+  if (!cid) { showStatus('g-status','err','Enter your Google Client ID first.'); return; }
+
+  // Store client ID so we can use it after the redirect
+  try {
+    sessionStorage.setItem('jd_gclient_id', cid);
+    if (getRemember()) localStorage.setItem('jd_gclient_id', cid);
+  } catch(e) {}
+
+  // Build OAuth URL — redirect back to this exact page
+  var redirectUri = window.location.origin + window.location.pathname;
+  var params = new URLSearchParams({
+    client_id:     cid,
+    redirect_uri:  redirectUri,
+    response_type: 'code',
+    scope:         G_SCOPES,
+    access_type:   'offline',
+    prompt:        'consent'
+  });
+
+  // Navigate the current window (not a popup) — this avoids popup blockers
+  // and Google accepts it cleanly for web apps
+  window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+}
+
+async function testToken() {
+  const token = document.getElementById('g-token-input').value.trim();
+  const resultEl = document.getElementById('token-test-result');
+  if (!token) {
+    resultEl.innerHTML = '<div style="padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:#991b1b;">Paste a token first.</div>';
+    return;
+  }
+  resultEl.innerHTML = '<div style="padding:8px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:12px;color:#0369a1;">Testing token...</div>';
+
+  // Step 1: validate token with Google tokeninfo endpoint
+  try {
+    const infoRes = await fetch('https://oauth2.googleapis.com/tokeninfo?access_token=' + token);
+    const info = await infoRes.json();
+
+    if (info.error) {
+      resultEl.innerHTML = '<div style="padding:10px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:#991b1b;line-height:1.6;">\n        <strong>Token invalid:</strong> ' + info.error_description || info.error + '<br><br>\n        This usually means the token expired (they last 1 hour).<br>\n        Go back to <a href="https://developers.google.com/oauthplayground/" target="_blank" style="color:#1a56db;">OAuth Playground</a>, click <strong>Refresh access token</strong>, and paste the new one.\n      </div>';
+      return;
+    }
+
+    // Token is valid — show what scopes it has
+    const scopes = (info.scope || '').split(' ');
+    const hasCalendar = scopes.some(s => s.includes('calendar'));
+    const hasGmail = scopes.some(s => s.includes('gmail') || s.includes('mail.google'));
+    const expiresIn = Math.round(info.expires_in / 60);
+
+    let scopeWarnings = [];
+    if (!hasCalendar) scopeWarnings.push('❌ Missing Calendar scope');
+    if (!hasGmail) scopeWarnings.push('❌ Missing Gmail scope');
+
+    const statusColor = scopeWarnings.length ? '#fef9c3' : '#f0fdf4';
+    const borderColor = scopeWarnings.length ? '#fde047' : '#bbf7d0';
+    const textColor = scopeWarnings.length ? '#713f12' : '#166534';
+
+    resultEl.innerHTML = '<div style="padding:10px 12px;background:' + statusColor + ';border:1px solid ' + borderColor + ';border-radius:6px;font-size:12px;color:' + textColor + ';line-height:1.8;">\n      <strong>Token is valid</strong> — expires in ~' + expiresIn + ' min<br>\n      Email: ' + (info.email || 'unknown') + '<br>\n      Calendar scope: ' + (hasCalendar ? '✅' : '❌ not found') + '<br>\n      Gmail scope: ' + (hasGmail ? '✅' : '❌ not found') + '<br>\n      ' + (scopeWarnings.length ? '<br><strong>Fix:</strong> Re-authorize in OAuth Playground and make sure to check both Calendar and Gmail scopes.' : '<br>All scopes present — click Connect!') + '\n    </div>';
+
+    // Step 2: try an actual Calendar API call
+    if (hasCalendar) {
+      try {
+        const calRes = await fetch('https://www.googleapis.com/calendar/v3/calendarList?maxResults=1', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+        const calData = await calRes.json();
+        if (calData.error) {
+          resultEl.innerHTML += '<div style="padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:#991b1b;margin-top:6px;">\n            Calendar API call failed: ' + calData.error.message + '<br>\n            Make sure <strong>Google Calendar API</strong> is enabled in your Google Cloud project.\n          </div>';
+        } else {
+          resultEl.innerHTML += '<div style="padding:8px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;font-size:12px;color:#166534;margin-top:6px;">\n            ✅ Calendar API call succeeded — found ' + (calData.items ? calData.items.length : 0) + ' calendar(s)\n          </div>';
+        }
+      } catch(e) {}
+    }
+
+  } catch(e) {
+    resultEl.innerHTML = '<div style="padding:8px 12px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:#991b1b;">Network error testing token: ' + e.message + '</div>';
+  }
+}
+
+async function googleSubmitCode() {
+  var code = document.getElementById('g-token-input').value.trim();
+  if (!code) { showStatus('g-status','err','Paste the authorization code first.'); return; }
+
+  var cid = document.getElementById('g-client-id').value.trim();
+  if (!cid) { showStatus('g-status','err','Client ID is missing — scroll up and enter it.'); return; }
+
+  showStatus('g-status','info','Exchanging code for tokens...');
+
+  try {
+    // Exchange auth code for access + refresh tokens via Netlify function
+    var res = await fetch('/.netlify/functions/refresh-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: code, client_id: cid, redirect_uri: window.location.origin + window.location.pathname, grant_type: 'authorization_code' })
+    });
+    var data = await res.json();
+
+    if (data.error) {
+      // Fallback: treat input as a raw access token (OAuth Playground users)
+      showStatus('g-status','info','Code exchange failed — trying as access token...');
+      gToken = code;
+      try { sessionStorage.setItem('jd_gtoken', code); } catch(e) {}
+      onGoogleOk();
+      return;
+    }
+
+    gToken = data.access_token;
+    if (data.refresh_token) {
+      try {
+        sessionStorage.setItem('jd_gtoken', gToken);
+        sessionStorage.setItem('jd_refresh_token', data.refresh_token);
+        sessionStorage.setItem('jd_gclient_id', cid);
+        if (getRemember()) {
+          localStorage.setItem('jd_gtoken', gToken);
+          localStorage.setItem('jd_refresh_token', data.refresh_token);
+          localStorage.setItem('jd_gclient_id', cid);
+        }
+      } catch(e) {}
+      scheduleTokenRefresh(data.expires_in || 3600);
+      showStatus('g-status','ok','Google connected! Tokens will auto-refresh — no more re-logging in.');
+    } else {
+      try { sessionStorage.setItem('jd_gtoken', gToken); } catch(e) {}
+      showStatus('g-status','ok','Google connected!');
+    }
+    onGoogleOk();
+  } catch(e) {
+    // Network error — try treating input as raw access token
+    gToken = code;
+    try { sessionStorage.setItem('jd_gtoken', code); } catch(e2) {}
+    onGoogleOk();
+  }
+}
+
+// Also keep old function name as alias for backward compat
+function googleSubmitToken() { googleSubmitCode(); }
+
+
+
+function googleAuthOob() {
+  window.open('https://developers.google.com/oauthplayground/', '_blank');
+  document.getElementById('g-manual-section').style.display = 'block';
+  showStatus('g-status','info','In OAuth Playground: select Calendar + Gmail scopes, authorize, copy the Access Token, paste below.');
+}
+
+function onGoogleOk() {
+  showStatus('g-status','ok','Google connected — Calendar and Gmail are live!');
+  document.getElementById('g-disconnect').style.display = 'inline-block';
+  setChip('chip-gcal','on','Google Cal'); setChip('chip-gmail','on','Gmail');
+  setBadge('badge-gmail','ok','✓');
+  document.getElementById('gcal-sub').textContent = 'Connected via OAuth';
+  document.getElementById('gmail-sub').textContent = 'Connected via OAuth';
+  document.getElementById('chat-sub').textContent = 'Google Calendar · Gmail · Outlook · Teams';
+  updateSetupBadge();
+  addMsg('ai','Google connected! I can now read your real Calendar and Gmail. Try: "What meetings do I have this week?" or "Triage my inbox."');
+
+  // Hide empty states immediately so panels are ready when user navigates to them
+  hide('gmail-empty'); hide('gcal-empty');
+  hide('gmail-loading'); hide('gcal-loading');
+
+  // Auto-load Gmail and Calendar data right away
+  loadGmail();
+  loadCalendar();
+}
+
+// ── Google auth code exchange ─────────────────────────────────────────────────
+async function exchangeGoogleCode(code) {
+  showStatus('g-status', 'info', 'Signing in to Google...');
+
+  var cid = null;
+  try {
+    cid = sessionStorage.getItem('jd_gclient_id')
+       || localStorage.getItem('jd_gclient_id')
+       || document.getElementById('g-client-id').value.trim();
+  } catch(e) {}
+
+  var redirectUri = window.location.origin + window.location.pathname;
+
+  try {
+    var res = await fetch('/.netlify/functions/refresh-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code:         code,
+        client_id:    cid,
+        redirect_uri: redirectUri,
+        grant_type:   'authorization_code'
+      })
+    });
+
+    var data = await res.json();
+
+    if (data.error) {
+      // Netlify function may not have client secret yet
+      if (data.error === 'not_configured') {
+        showStatus('g-status', 'err',
+          'Netlify function not configured. Add GOOGLE_CLIENT_SECRET to Netlify environment variables, redeploy, then try again.');
+      } else {
+        showStatus('g-status', 'err', 'Sign-in failed: ' + (data.message || data.error));
+      }
+      return;
+    }
+
+    // Success — store tokens
+    gToken = data.access_token;
+    try {
+      sessionStorage.setItem('jd_gtoken', gToken);
+      if (data.refresh_token) sessionStorage.setItem('jd_refresh_token', data.refresh_token);
+      if (getRemember()) {
+        localStorage.setItem('jd_gtoken', gToken);
+        if (data.refresh_token) localStorage.setItem('jd_refresh_token', data.refresh_token);
+      }
+    } catch(e) {}
+
+    if (data.refresh_token) {
+      scheduleTokenRefresh(data.expires_in || 3600);
+      showStatus('g-status', 'ok',
+        'Google connected! Auto-refresh active — you will never need to sign in again.');
+    } else {
+      showStatus('g-status', 'ok', 'Google connected!');
+    }
+
+    onGoogleOk();
+
+  } catch(e) {
+    showStatus('g-status', 'err',
+      'Could not reach Netlify function: ' + e.message +
+      '. Make sure GOOGLE_CLIENT_SECRET is set in Netlify environment variables.');
+  }
+}
+
+// ── Auto token refresh ─────────────────────────────────────────────────────────
+var _refreshTimer = null;
+
+function scheduleTokenRefresh(expiresIn) {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  // Refresh 5 minutes before expiry
+  var delay = Math.max(10000, (expiresIn - 300) * 1000);
+  _refreshTimer = setTimeout(autoRefreshToken, delay);
+  console.log('JD: token refresh scheduled in ' + Math.round(delay/60000) + ' min');
+}
+
+async function autoRefreshToken() {
+  var refreshToken = null;
+  var clientId = null;
+  try {
+    refreshToken = sessionStorage.getItem('jd_refresh_token');
+    clientId = sessionStorage.getItem('jd_gclient_id') || document.getElementById('g-client-id').value.trim();
+  } catch(e) {}
+
+  if (!refreshToken) {
+    console.log('JD: no refresh token stored — skipping auto-refresh');
+    return;
+  }
+
+  try {
+    var res = await fetch('/.netlify/functions/refresh-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    var data = await res.json();
+
+    if (data.access_token) {
+      gToken = data.access_token;
+      try {
+        sessionStorage.setItem('jd_gtoken', gToken);
+        if (getRemember()) localStorage.setItem('jd_gtoken', gToken);
+      } catch(e) {}
+      scheduleTokenRefresh(data.expires_in || 3600);
+      toast('Google token refreshed automatically');
+      console.log('JD: token auto-refreshed successfully');
+    } else {
+      console.log('JD: auto-refresh failed:', data.error);
+      toast('Token refresh failed — please reconnect in Setup', true);
+    }
+  } catch(e) {
+    console.log('JD: auto-refresh error:', e.message);
+  }
+}
+
+function googleDisconnect() {
+  gToken = null;
+  if (_refreshTimer) { clearTimeout(_refreshTimer); _refreshTimer = null; }
+  try {
+    ['jd_gtoken','jd_refresh_token','jd_gclient_id'].forEach(function(k) {
+      sessionStorage.removeItem(k);
+      localStorage.removeItem(k);
+    });
+  } catch(e) {}
+  showStatus('g-status','info','Disconnected.');
+  document.getElementById('g-disconnect').style.display = 'none';
+  setChip('chip-gcal','','Google Cal'); setChip('chip-gmail','','Gmail');
+  setBadge('badge-gmail','','!');
+  hide('gcal-list'); show('gcal-empty','flex'); hide('gmail-list'); show('gmail-empty','flex');
+  updateSetupBadge();
+}
+
+// ── Google API ────────────────────────────────────────────────────────────────
+async function gFetch(url) {
+  let r;
+  try { r = await fetch(url, { headers:{ Authorization:'Bearer '+gToken } }); }
+  catch(e) { throw new Error('Network error: ' + e.message + '. Check your internet connection.'); }
+  const d = await r.json();
+  if (d.error) {
+    const code = d.error.code || r.status;
+    const msg = d.error.message || 'Unknown error';
+    if (code === 401) throw new Error('Token expired or invalid (401). Please reconnect in Setup.');
+    if (code === 403) throw new Error('Access denied (403): ' + msg + '. Make sure the API is enabled and you added the correct scopes.');
+    throw new Error('Google API error ' + code + ': ' + msg);
+  }
+  return d;
+}
+async function fetchCalEvents() {
+  const now = new Date().toISOString(), end = new Date(Date.now()+7*864e5).toISOString();
+  return (await gFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=' + now + '&timeMax=' + end + '&singleEvents=true&orderBy=startTime&maxResults=20')).items||[];
+}
+async function fetchGmailMsgs(n=10) {
+  const list = await gFetch('https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=' + n + '&q=is:unread');
+  if (!list.messages) return [];
+  return Promise.all(list.messages.slice(0,n).map(m => gFetch('https://www.googleapis.com/gmail/v1/users/me/messages/' + m.id + '?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date').then(d => {
+    const h = d.payload?.headers||[], g = name => (h.find(x=>x.name===name)||{}).value||'';
+    return { from:g('From'), subject:g('Subject'), date:g('Date'), snippet:d.snippet||'' };
+  })));
+}
+
+async function loadCalendar() {
+  if (!gToken) return;
+  hide('gcal-empty'); show('gcal-loading','flex'); hide('gcal-list');
+  try {
+    const evts = await fetchCalEvents();
+    const list = document.getElementById('gcal-list');
+    list.innerHTML = '';
+    const cols = ['#1a56db','#16a34a','#d97706','#9333ea','#dc2626'];
+    let lastDate = '';
+    evts.forEach((ev,i) => {
+      const raw = ev.start?.dateTime||ev.start?.date||'';
+      const d = new Date(raw), dk = d.toDateString();
+      if (dk !== lastDate) {
+        lastDate = dk;
+        const lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px;color:#888;padding:4px 0 8px;';
+        lbl.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + (dk===new Date().toDateString()?' — Today':'');
+        list.appendChild(lbl);
+      }
+      const time = ev.start?.dateTime ? new Date(ev.start.dateTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : 'All day';
+      const card = document.createElement('div'); card.className = 'evt-card';
+      card.innerHTML = '<div class="evt-time">' + time + '</div><div class="evt-bar" style="background:' + cols[i%5] + ';"></div><div><div class="evt-title">' + ev.summary||'(No title)' + '</div><div class="evt-sub">' + (ev.location||ev.description||'').substring(0,60)||'&nbsp;' + '</div></div>';
+      card.onclick = () => ask('Help me prepare for: "' + ev.summary + '" on ' + raw);
+      list.appendChild(card);
+    });
+    if (!evts.length) {
+      list.innerHTML = '<div style="padding:20px;color:#666;font-size:13px;">No upcoming events in the next 7 days.</div>';
+    }
+    hide('gcal-loading'); show('gcal-list','flex');
+    document.getElementById('gcal-sub').textContent = evts.length + ' events this week';
+  } catch(e) {
+    hide('gcal-loading');
+    const errMsg = e.message || String(e);
+    const gcalEmpty = document.getElementById('gcal-empty');
+    gcalEmpty.innerHTML = '\n      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e55" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>\n      <div class="empty-title" style="color:#991b1b;">Calendar error</div>\n      <div style="font-size:12px;color:#555;max-width:360px;text-align:center;line-height:1.6;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;">' + errMsg + '</div>\n      <div style="font-size:12px;color:#666;max-width:340px;text-align:center;line-height:1.6;">\n        Common fixes:<br>\n        • Token expired — go to Setup and reconnect<br>\n        • Calendar API not enabled in Google Cloud Console<br>\n        • Missing calendar scope in OAuth consent screen\n      </div>\n      <button class="btn-blue" onclick="showPanel(\'setup\', document.querySelectorAll(\'.navbtn\')[6])">Go to Setup</button>';
+    show('gcal-empty','flex');
+  }
+}
+
+// ── Watched senders (auto-reply rules) ───────────────────────────────────────
+let watchedSenders = []; // [{email, reply}]
+
+// Poll for new emails every 60 seconds and fire auto-replies
+setInterval(async () => {
+  if (!gToken || !watchedSenders.length) return;
+  try {
+    const recent = await fetchGmailMsgs(5, 'is:unread newer_than:2m');
+    for (const msg of recent) {
+      const fromEmail = (msg.from.match(/<([^>]+)>/) || [,''])[1].toLowerCase() || msg.from.toLowerCase();
+      const rule = watchedSenders.find(w => fromEmail.includes(w.email.toLowerCase()));
+      if (rule && !msg._autoReplied) {
+        msg._autoReplied = true;
+        const threadId = msg.threadId;
+        const replySubject = msg.subject.startsWith('Re:') ? msg.subject : 'Re: ' + msg.subject;
+        await sendEmail(msg.from, replySubject, rule.reply, threadId);
+        await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + msg.id + '/modify','POST',{removeLabelIds:['UNREAD']});
+        toast('Auto-replied to ' + rule.email);
+        addMsg('ai', 'Auto-reply sent to <strong>' + rule.email + '</strong> as per your rule.');
+        if (document.getElementById('panel-gmail').style.display !== 'none') loadGmail();
+      }
+    }
+  } catch(e) {}
+}, 60000);
+
+// ── Gmail state ───────────────────────────────────────────────────────────────
+let gmailMessages = [];
+let selectedMsgIds = new Set();
+let currentFilter = 'is:unread';
+let replyToMsg = null;
+
+// ── Gmail load + render ───────────────────────────────────────────────────────
+async function loadGmail(filter) {
+  if (!gToken) return;
+  if (filter) currentFilter = filter;
+  selectedMsgIds.clear();
+  hide('gmail-bulk-bar');
+  hide('gmail-empty'); show('gmail-loading','flex'); hide('gmail-list');
+  show('gmail-filters','flex');
+  try {
+    gmailMessages = await fetchGmailMsgs(20, currentFilter);
+    renderGmailList();
+    hide('gmail-loading'); show('gmail-list','block');
+    const unread = gmailMessages.filter(m=>m.unread).length;
+    document.getElementById('gmail-sub').textContent = unread + ' unread · ' + gmailMessages.length + ' shown';
+    // Update bottom nav badge
+    var badge = document.getElementById('bnav-gmail-badge');
+    if (badge) {
+      if (unread > 0) { badge.textContent = unread > 99 ? '99+' : String(unread); badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+    }
+  } catch(e) {
+    hide('gmail-loading');
+    showGmailError(e.message);
+  }
+}
+
+function renderGmailList() {
+  const list = document.getElementById('gmail-list');
+  list.innerHTML = '';
+  const pals = [['#dbeafe','#1e40af'],['#dcfce7','#166534'],['#fef9c3','#854d0e'],['#f3e8ff','#6b21a8'],['#fee2e2','#991b1b']];
+  if (!gmailMessages.length) {
+    list.innerHTML = '<div style="padding:24px;color:#666;font-size:13px;text-align:center;">No messages found.</div>';
+    return;
+  }
+  gmailMessages.forEach((msg, i) => {
+    const name = (msg.from.match(/^([^<]+)/)||['','?'])[1].trim().replace(/"/g,'')||msg.from;
+    const email = (msg.from.match(/<([^>]+)>/)|| [,''])[1] || msg.from;
+    const ini = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const [bg,fg] = pals[i%5];
+    const ds = msg.date ? new Date(msg.date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+    const isSelected = selectedMsgIds.has(msg.id);
+    const row = document.createElement('div');
+    row.className = 'mail-item' + (isSelected?' mail-selected':'');
+    row.id = 'mail-row-' + msg.id;
+    row.style.fontWeight = msg.unread ? '600' : '400';
+    var checkedAttr = isSelected ? 'checked' : '';
+    var unreadDot = msg.unread ? '<div class="unread-dot"></div>' : '';
+    var starSpan = msg.starred ? '<span style="color:#f59e0b;font-size:13px;">\u2605</span>' : '';
+    var msgSubject = msg.subject || '(no subject)';
+    var msgSnippet = (msg.snippet || '').substring(0, 80);
+    var safeId = msg.id;
+    var safeName = name.replace(/'/g, '&#39;');
+    var safeSubject = msgSubject.replace(/'/g, '&#39;');
+    var safeEmail = email.replace(/'/g, '&#39;');
+    var safeSnippet = (msg.snippet || '').replace(/'/g, '&#39;').substring(0, 100);
+    row.innerHTML = '<input type="checkbox" class="mail-check" ' + checkedAttr + ' onclick="toggleSelect(\'' + safeId + '\',this)" style="width:15px;height:15px;cursor:pointer;flex-shrink:0;margin-top:2px;accent-color:#1a56db;" />'
+      + '<div class="mail-av" style="background:' + bg + ';color:' + fg + ';">' + ini + '</div>'
+      + '<div style="flex:1;min-width:0;cursor:pointer;" onclick="openEmail(\'' + safeId + '\')">'
+      + '  <div style="display:flex;align-items:center;gap:5px;">'
+      + '    <div class="mail-from">' + name + '</div>'
+      + '    ' + unreadDot
+      + '    ' + starSpan
+      + '  </div>'
+      + '  <div class="mail-subj">' + msgSubject + '</div>'
+      + '  <div class="mail-prev">' + msgSnippet + '</div>'
+      + '</div>'
+      + '<div class="mail-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+      + '  <span>' + ds + '</span>'
+      + '  <div class="mail-actions">'
+      + '    <button class="mail-act-btn green" onclick="quickReply(\'' + safeId + '\',\'' + safeName + '\',\'' + safeSubject + '\',\'' + safeEmail + '\')">Reply</button>'
+      + '    <button class="mail-act-btn blue" onclick="aiReply(\'' + safeId + '\',\'' + safeName + '\',\'' + safeSubject + '\',\'' + safeEmail + '\',\'' + safeSnippet + '\')">&#10022; AI Reply</button>'
+      + '    <button class="mail-act-btn" onclick="archiveEmail(\'' + safeId + '\')">Archive</button>'
+      + '    <button class="mail-act-btn red" onclick="deleteEmail(\'' + safeId + '\')">Delete</button>'
+      + '  </div>'
+      + '</div>';
+    list.appendChild(row);
+  });
+}
+
+function showGmailError(errMsg) {
+  const el = document.getElementById('gmail-empty');
+  el.innerHTML = '\n    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e55" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>\n    <div class="empty-title" style="color:#991b1b;">Gmail error</div>\n    <div style="font-size:12px;color:#555;max-width:360px;text-align:center;line-height:1.6;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;">' + errMsg + '</div>\n    <button class="btn-blue" onclick="showPanel(\'setup\', document.querySelectorAll(\'.navbtn\')[6])">Go to Setup</button>';
+  show('gmail-empty','flex');
+}
+
+// ── Gmail fetch ───────────────────────────────────────────────────────────────
+async function fetchGmailMsgs(n=20, q='is:unread') {
+  const list = await gFetch('https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=' + n + '&q=' + encodeURIComponent(q));
+  if (!list.messages) return [];
+  const details = await Promise.all(list.messages.slice(0,n).map(m =>
+    gFetch('https://www.googleapis.com/gmail/v1/users/me/messages/' + m.id + '?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date&metadataHeaders=To')
+  ));
+  return details.map(d => {
+    const h = d.payload?.headers||[], g = name => (h.find(x=>x.name===name)||{}).value||'';
+    return {
+      id: d.id,
+      threadId: d.threadId,
+      from: g('From'), to: g('To'),
+      subject: g('Subject'), date: g('Date'),
+      snippet: d.snippet||'',
+      unread: (d.labelIds||[]).includes('UNREAD'),
+      starred: (d.labelIds||[]).includes('STARRED'),
+      labels: d.labelIds||[]
+    };
+  });
+}
+
+// ── Gmail write actions ───────────────────────────────────────────────────────
+async function gAction(url, method='POST', body=null) {
+  const opts = { method, headers:{ Authorization:'Bearer '+gToken } };
+  if (body) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const r = await fetch(url, opts);
+  if (!r.ok && r.status !== 204) {
+    const err = await r.json().catch(()=>({}));
+    throw new Error(err.error?.message || 'HTTP ' + r.status);
+  }
+  return r.status === 204 ? {} : r.json().catch(()=>({}));
+}
+
+async function deleteEmail(id) {
+  if (!confirm('Move this email to Trash?')) return;
+  try {
+    await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/trash');
+    toast('Email moved to Trash');
+    gmailMessages = gmailMessages.filter(m=>m.id!==id);
+    renderGmailList();
+  } catch(e) { toast('Delete failed: ' + e.message, true); }
+}
+
+async function archiveEmail(id) {
+  try {
+    await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify', 'POST', { removeLabelIds:['INBOX'] });
+    toast('Email archived');
+    gmailMessages = gmailMessages.filter(m=>m.id!==id);
+    renderGmailList();
+  } catch(e) { toast('Archive failed: ' + e.message, true); }
+}
+
+async function markRead(id) {
+  try {
+    await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify', 'POST', { removeLabelIds:['UNREAD'] });
+    const msg = gmailMessages.find(m=>m.id===id);
+    if (msg) { msg.unread = false; renderGmailList(); }
+  } catch(e) { toast('Failed: ' + e.message, true); }
+}
+
+async function starEmail(id) {
+  try {
+    const msg = gmailMessages.find(m=>m.id===id);
+    const add = !msg?.starred;
+    await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify', 'POST',
+      add ? { addLabelIds:['STARRED'] } : { removeLabelIds:['STARRED'] });
+    if (msg) { msg.starred = add; renderGmailList(); }
+    toast(add ? 'Starred' : 'Unstarred');
+  } catch(e) { toast('Failed: ' + e.message, true); }
+}
+
+async function sendEmail(to, subject, body, threadId=null) {
+  const msg = ['To: ' + to, 'Subject: ' + subject, 'Content-Type: text/plain; charset=utf-8', '', body].join('\r\n');
+  const encoded = btoa(unescape(encodeURIComponent(msg))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const payload = { raw: encoded };
+  if (threadId) payload.threadId = threadId;
+  await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/send', 'POST', payload);
+}
+
+// ── Compose / Reply ───────────────────────────────────────────────────────────
+let currentThreadId = null;
+
+function gmailCompose() {
+  replyToMsg = null; currentThreadId = null;
+  document.getElementById('compose-title').textContent = 'New Message';
+  document.getElementById('compose-to').value = '';
+  document.getElementById('compose-subject').value = '';
+  document.getElementById('compose-body').value = '';
+  document.getElementById('compose-modal').style.display = 'flex';
+}
+
+function quickReply(id, name, subject, email) {
+  replyToMsg = { id, name, email, subject };
+  currentThreadId = gmailMessages.find(m=>m.id===id)?.threadId || null;
+  document.getElementById('compose-title').textContent = 'Reply to ' + name;
+  document.getElementById('compose-to').value = email;
+  document.getElementById('compose-subject').value = subject.startsWith('Re:') ? subject : 'Re: ' + subject;
+  document.getElementById('compose-body').value = '';
+  document.getElementById('compose-modal').style.display = 'flex';
+  document.getElementById('compose-body').focus();
+}
+
+async function aiReply(id, name, subject, email, snippet) {
+  quickReply(id, name, subject, email);
+  document.getElementById('compose-body').value = 'Drafting with AI...';
+  const key = document.getElementById('anthropic-key').value.trim();
+  if (!key) { document.getElementById('compose-body').value = ''; toast('Add your Anthropic API key in Setup first', true); return; }
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:500,
+        messages:[{ role:'user', content:'Write a concise professional reply to this email. From: ' + name + '. Subject: ' + subject + '. Message: ' + snippet + '. Just write the reply body, no greeting needed, sign off as Chad.' }]
+      })
+    });
+    const data = await res.json();
+    const draft = data.content?.[0]?.text || '';
+    document.getElementById('compose-body').value = draft;
+  } catch(e) { document.getElementById('compose-body').value = ''; toast('AI draft failed: ' + e.message, true); }
+}
+
+async function aiDraftEmail() {
+  const to = document.getElementById('compose-to').value.trim();
+  const subject = document.getElementById('compose-subject').value.trim();
+  const existing = document.getElementById('compose-body').value.trim();
+  const key = document.getElementById('anthropic-key').value.trim();
+  if (!key) { toast('Add your Anthropic API key in Setup first', true); return; }
+  document.getElementById('compose-body').value = 'Drafting with AI...';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:500,
+        messages:[{ role:'user', content:'Draft a professional email. To: ' + to||'recipient' + '. Subject: ' + subject||'(no subject)' + '. ' + existing?'Context/notes: '+existing:'Write a complete professional email.' + ' Sign off as Chad.' }]
+      })
+    });
+    const data = await res.json();
+    document.getElementById('compose-body').value = data.content?.[0]?.text || '';
+  } catch(e) { document.getElementById('compose-body').value = existing; toast('AI draft failed: ' + e.message, true); }
+}
+
+async function sendComposedEmail() {
+  const to = document.getElementById('compose-to').value.trim();
+  const subject = document.getElementById('compose-subject').value.trim();
+  const body = document.getElementById('compose-body').value.trim();
+  if (!to || !body) { toast('To and message body are required', true); return; }
+  try {
+    await sendEmail(to, subject, body, currentThreadId);
+    toast('Email sent!');
+    closeCompose();
+    if (replyToMsg) { await markRead(replyToMsg.id); }
+  } catch(e) { toast('Send failed: ' + e.message, true); }
+}
+
+function closeCompose() {
+  document.getElementById('compose-modal').style.display = 'none';
+  replyToMsg = null; currentThreadId = null;
+}
+
+function openEmail(id) {
+  const msg = gmailMessages.find(m=>m.id===id);
+  if (!msg) return;
+  markRead(id);
+  ask('Summarize this email from ' + msg.from + ' with subject "' + msg.subject + '" and suggest how to reply. Snippet: ' + msg.snippet);
+}
+
+// ── Filter / search / bulk ────────────────────────────────────────────────────
+function setGmailFilter(q, btn) {
+  document.querySelectorAll('.gfilter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadGmail(q === 'all' ? '' : q === 'unread' ? 'is:unread' : q === 'starred' ? 'is:starred' : q === 'important' ? 'is:important' : q);
+}
+
+function searchGmail() {
+  const q = document.getElementById('gmail-search').value.trim();
+  if (q) loadGmail(q);
+}
+
+function toggleSelect(id, cb) {
+  if (cb.checked) selectedMsgIds.add(id); else selectedMsgIds.delete(id);
+  const row = document.getElementById('mail-row-' + id);
+  if (row) row.classList.toggle('mail-selected', cb.checked);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('gmail-bulk-bar');
+  const count = selectedMsgIds.size;
+  if (count > 0) {
+    bar.style.display = 'flex';
+    document.getElementById('bulk-count').textContent = count + ' selected';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function clearSelection() {
+  selectedMsgIds.clear();
+  document.querySelectorAll('.mail-check').forEach(cb => cb.checked = false);
+  document.querySelectorAll('.mail-selected').forEach(el => el.classList.remove('mail-selected'));
+  hide('gmail-bulk-bar');
+}
+
+async function bulkAction(action) {
+  if (!selectedMsgIds.size) return;
+  const ids = [...selectedMsgIds];
+  const label = { delete:'Delete', archive:'Archive', markRead:'Mark as read', star:'Star' }[action];
+  if (action === 'delete' && !confirm(label + ' ' + ids.length + ' email(s)?')) return;
+  let done = 0;
+  for (const id of ids) {
+    try {
+      if (action === 'delete') await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/trash');
+      else if (action === 'archive') await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{removeLabelIds:['INBOX']});
+      else if (action === 'markRead') await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{removeLabelIds:['UNREAD']});
+      else if (action === 'star') await gAction('https://www.googleapis.com/gmail/v1/users/me/messages/' + id + '/modify','POST',{addLabelIds:['STARRED']});
+      done++;
+    } catch(e) {}
+  }
+  toast(label + ': ' + done + '/' + ids.length + ' emails');
+  clearSelection();
+  loadGmail();
+}
+
+// ── Toast helper ──────────────────────────────────────────────────────────────
+function toast(msg, isError=false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = isError ? '#dc2626' : '#1a1a1a';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+
+async function loadOutlook() {
+  if (!msToken) return;
+  hide('outlook-empty'); show('outlook-loading','flex'); hide('outlook-list');
+  try {
+    const msgs = await fetchOutlookMsgs(8);
+    const list = document.getElementById('outlook-list');
+    list.innerHTML = '';
+    const pals = [['#dbeafe','#1e40af'],['#dcfce7','#166534'],['#fef9c3','#854d0e'],['#f3e8ff','#6b21a8']];
+    msgs.forEach((msg,i) => {
+      const name = msg.from?.emailAddress?.name||msg.from?.emailAddress?.address||'Unknown';
+      const ini = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+      const [bg,fg] = pals[i%4];
+      const ds = new Date(msg.receivedDateTime).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const div = document.createElement('div'); div.className = 'mail-item';
+      div.style.opacity = msg.isRead ? '0.6' : '1';
+      div.innerHTML = '<div class="mail-av" style="background:' + bg + ';color:' + fg + ';">' + ini + '</div><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:5px;"><div class="mail-from">' + name + '</div>' + !msg.isRead?'<div class="unread-dot"></div>':'' + '</div><div class="mail-subj">' + msg.subject||'(no subject)' + '</div><div class="mail-prev">' + (msg.bodyPreview||'').substring(0,80) + '</div></div><div class="mail-meta">' + ds + '</div>';
+      div.onclick = () => ask('Summarize Outlook email from ' + name + ' — "' + msg.subject + '" — and suggest a reply. Preview: ' + msg.bodyPreview);
+      list.appendChild(div);
+    });
+    if (!msgs.length) list.innerHTML = '<div style="padding:20px;color:#666;font-size:13px;">No messages found.</div>';
+    hide('outlook-loading'); show('outlook-list','block');
+    document.getElementById('outlook-sub').textContent = msgs.filter(m=>!m.isRead).length + ' unread · Graph API';
+  } catch(e) { hide('outlook-loading'); show('outlook-empty','flex'); }
+}
+
+async function loadTeams() {
+  if (!msToken) return;
+  try {
+    const data = await msFetch('https://graph.microsoft.com/v1.0/me/joinedTeams');
+    const list = document.getElementById('teams-list');
+    list.innerHTML = '';
+    (data.value||[]).slice(0,5).forEach(team => {
+      const div = document.createElement('div'); div.className = 'teams-ch';
+      div.innerHTML = '<div class="teams-ch-hdr" onclick="ask(\'Summarize latest messages in the ' + team.displayName + ' Teams channel\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><div><div class="teams-ch-name">' + team.displayName + '</div><div class="teams-ch-sub">Click to summarize via AI ↗</div></div></div><div class="teams-msg" style="color:#aaa;">Ask AI Chat to read messages from this channel.</div>';
+      list.appendChild(div);
+    });
+    if (!data.value?.length) list.innerHTML = '<div style="padding:16px;color:#666;font-size:13px;">No Teams found.</div>';
+  } catch(e) {}
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function onAnthropicKeyChange() {
+  const key = document.getElementById('anthropic-key').value.trim();
+  const el = document.getElementById('anthropic-status');
+  if (key.startsWith('sk-ant-') && key.length > 20) {
+    el.innerHTML = '<div class="status-ok"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>API key looks good — AI Chat is ready.</div>';
+    // Auto-save if remember is checked
+    if (getRemember()) {
+      try { localStorage.setItem('jd_anthropic_key', key); } catch(e) {}
+    }
+  } else if (key.length > 5) {
+    el.innerHTML = '<div class="status-err"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Key should start with sk-ant- — double check you copied the full key.</div>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
+function checkTokenStatus() {
+  var el = document.getElementById('g-token-status');
+  var remember = getRemember();
+
+  var accessToken = (remember ? localStorage.getItem('jd_gtoken') : null) || sessionStorage.getItem('jd_gtoken');
+  var refreshToken = (remember ? localStorage.getItem('jd_refresh_token') : null) || sessionStorage.getItem('jd_refresh_token');
+  var clientId = (remember ? localStorage.getItem('jd_gclient_id') : null) || sessionStorage.getItem('jd_gclient_id');
+
+  var lines = [];
+  lines.push('Remember keys: ' + (remember ? '✅ on' : '❌ off'));
+  lines.push('Access token: ' + (accessToken ? '✅ present (' + accessToken.substring(0,12) + '...)' : '❌ missing'));
+  lines.push('Refresh token: ' + (refreshToken ? '✅ present — auto-refresh will work' : '❌ missing — token will expire in ~60 min'));
+  lines.push('Client ID: ' + (clientId ? '✅ ' + clientId.substring(0,20) + '...' : '❌ missing'));
+  lines.push('Auto-refresh timer: ' + (_refreshTimer ? '✅ scheduled' : '❌ not scheduled'));
+
+  el.innerHTML = lines.join('<br>');
+
+  // If refresh token missing but we have access token, explain how to fix
+  if (accessToken && !refreshToken) {
+    el.innerHTML += '<br><br><span style="color:var(--amber);">⚠️ No refresh token found. Click Sign in with Google again to get a permanent token.</span>';
+  } else if (refreshToken && !_refreshTimer) {
+    // Have refresh token but timer not running — start it
+    el.innerHTML += '<br><span style="color:var(--green);">Starting auto-refresh timer now...</span>';
+    scheduleTokenRefresh(3300);
+  }
+}
+
+function getRemember() {
+  try { return localStorage.getItem('jd_remember') === 'true'; } catch(e) { return false; }
+}
+
+function toggleRememberKeys(checked) {
+  try {
+    localStorage.setItem('jd_remember', checked ? 'true' : 'false');
+    if (checked) {
+      // Save current keys immediately
+      var apiKey = document.getElementById('anthropic-key').value.trim();
+      var gClientId = document.getElementById('g-client-id').value.trim();
+      if (apiKey) localStorage.setItem('jd_anthropic_key', apiKey);
+      if (gClientId) localStorage.setItem('jd_gclient_id_saved', gClientId);
+      // gToken and refresh token already saved — move from sessionStorage to localStorage
+      var gTok = sessionStorage.getItem('jd_gtoken');
+      var gRef = sessionStorage.getItem('jd_refresh_token');
+      var msTok = sessionStorage.getItem('jd_mstoken');
+      if (gTok) localStorage.setItem('jd_gtoken', gTok);
+      if (gRef) localStorage.setItem('jd_refresh_token', gRef);
+      if (msTok) localStorage.setItem('jd_mstoken', msTok);
+      toast('Keys saved — JD will remember them next time.');
+    } else {
+      // Clear from localStorage
+      ['jd_anthropic_key','jd_gtoken','jd_refresh_token','jd_gclient_id_saved','jd_mstoken'].forEach(function(k) {
+        try { localStorage.removeItem(k); } catch(e) {}
+      });
+      toast('Keys cleared from persistent storage.');
+    }
+  } catch(e) {}
+}
+
+// ── Microsoft OAuth ───────────────────────────────────────────────────────────
+function msAuth() {
+  const tenant = document.getElementById('ms-tenant-id').value.trim();
+  const client = document.getElementById('ms-client-id').value.trim();
+  if (!tenant || !client) { showStatus('ms-status','err','Enter both Tenant ID and Client ID first.'); return; }
+  showStatus('ms-status','info','Opening Microsoft sign-in window...');
+  const scope = encodeURIComponent('openid profile Mail.Read Mail.Send Calendars.ReadWrite Chat.Read Chat.ReadWrite ChannelMessage.Read.All User.Read offline_access');
+  const redirect = encodeURIComponent('https://login.microsoftonline.com/common/oauth2/nativeclient');
+  const url = 'https://login.microsoftonline.com/' + tenant + '/oauth2/v2.0/authorize?client_id=' + client + '&response_type=token&redirect_uri=' + redirect + '&scope=' + scope + '&response_mode=fragment';
+  const win = window.open(url, 'msauth', 'width=520,height=640');
+  const t = setInterval(function() {
+    try {
+      if (win.closed) { clearInterval(t); return; }
+      const h = win.location.hash;
+      if (h && h.includes('access_token')) {
+        clearInterval(t); win.close();
+        msToken = new URLSearchParams(h.substring(1)).get('access_token');
+        if (msToken) onMsOk();
+      }
+    } catch(e) {}
+  }, 800);
+}
+
+function onMsOk() {
+  try {
+    sessionStorage.setItem('jd_mstoken', msToken);
+    if (getRemember()) localStorage.setItem('jd_mstoken', msToken);
+  } catch(e) {}
+  showStatus('ms-status','ok','Microsoft connected! Outlook and Teams are live.');
+  document.getElementById('ms-disconnect').style.display = 'inline-block';
+  setChip('chip-outlook','on','Outlook'); setChip('chip-teams','on','Teams');
+  setBadge('badge-outlook','ok','\u2713'); setBadge('badge-teams','ok','\u2713');
+  document.getElementById('outlook-sub').textContent = 'Connected via Graph API';
+  document.getElementById('teams-sub').textContent = 'Connected via Graph API';
+  hide('teams-empty'); show('teams-live','flex');
+  updateSetupBadge();
+  addMsg('ai','Microsoft connected! Outlook and Teams are now live.');
+}
+
+function msDisconnect() {
+  msToken = null;
+  try {
+    sessionStorage.removeItem('jd_mstoken');
+    localStorage.removeItem('jd_mstoken');
+  } catch(e) {}
+  showStatus('ms-status','info','Disconnected.');
+  document.getElementById('ms-disconnect').style.display = 'none';
+  setChip('chip-outlook','','Outlook'); setChip('chip-teams','','Teams');
+  setBadge('badge-outlook','','!'); setBadge('badge-teams','','!');
+  hide('outlook-list'); show('outlook-empty','flex');
+  hide('teams-live'); show('teams-empty','flex');
+  updateSetupBadge();
+}
+
+function forceLoadGmail() {
+  var debug = document.getElementById('gmail-debug');
+  var tokenStatus = gToken ? 'Token set (' + gToken.substring(0,10) + '...)' : 'No token in memory';
+  var ssToken = null;
+  try { ssToken = sessionStorage.getItem('jd_gtoken'); } catch(e) {}
+  var ssStatus = ssToken ? 'SessionStorage: YES (' + ssToken.substring(0,10) + '...)' : 'SessionStorage: empty';
+  if (debug) {
+    debug.style.display = 'block';
+    debug.textContent = tokenStatus + ' | ' + ssStatus;
+  }
+  // Try to use sessionStorage token if gToken is missing
+  if (!gToken && ssToken) {
+    gToken = ssToken;
+    onGoogleOk();
+    return;
+  }
+  if (gToken) {
+    loadGmail();
+  } else {
+    if (debug) debug.textContent += ' | NO TOKEN — go to Setup';
+  }
+}
+
+
+async function gmailDirectTest() {
+  var result = document.getElementById('gmail-test-result');
+  if (!result) return;
+
+  // Step 1: check gToken
+  if (!gToken) {
+    // try sessionStorage
+    try {
+      var s = sessionStorage.getItem('jd_gtoken');
+      if (s) { gToken = s; }
+    } catch(e) {}
+  }
+
+  result.innerHTML = 'Token in memory: ' + (gToken ? 'YES (' + gToken.substring(0,12) + '...)' : 'NO');
+
+  if (!gToken) {
+    result.innerHTML += '<br>No token found. Go to Setup and reconnect.';
+    return;
+  }
+
+  result.innerHTML += '<br>Calling Google API...';
+
+  try {
+    var r = await fetch('https://www.googleapis.com/gmail/v1/users/me/profile', {
+      headers: { 'Authorization': 'Bearer ' + gToken }
+    });
+    var data = await r.json();
+    if (data.error) {
+      result.innerHTML += '<br><span style="color:#dc2626;">API Error ' + data.error.code + ': ' + data.error.message + '</span>';
+      if (data.error.code === 401) {
+        result.innerHTML += '<br>Token expired. Get a fresh token from OAuth Playground.';
+      } else if (data.error.code === 403) {
+        result.innerHTML += '<br>Permission denied. Re-authorize with all Gmail scopes.';
+      }
+    } else {
+      result.innerHTML += '<br><span style="color:#16a34a;">Connected as: ' + data.emailAddress + '</span>';
+      result.innerHTML += '<br>Loading inbox...';
+      loadGmail();
+    }
+  } catch(e) {
+    result.innerHTML += '<br><span style="color:#dc2626;">Fetch error: ' + e.message + '</span>';
+    result.innerHTML += '<br>This may be a Safari CORS or network issue.';
+  }
+}
+
+function gmailRetry() {
+  if (gToken) {
+    loadGmail();
+  } else {
+    // Try restore from sessionStorage
+    try {
+      var saved = sessionStorage.getItem('jd_gtoken');
+      if (saved) { gToken = saved; onGoogleOk(); }
+      else { showPanel('setup', document.querySelectorAll('.navbtn')[6]); }
+    } catch(e) { showPanel('setup', document.querySelectorAll('.navbtn')[6]); }
+  }
+}
+
+function show(id, display='block') { const el=document.getElementById(id); if(el) el.style.display=display; }
+function hide(id) { const el=document.getElementById(id); if(el) el.style.display='none'; }
+
+function setChip(id, state, label) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'chip' + (state ? ' '+state : '');
+  el.innerHTML = '<div class="dot"></div>' + label;
+}
+
+function setBadge(id, type, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'nbadge' + (type==='ok' ? ' ok' : '');
+  el.textContent = text;
+}
+
+function showStatus(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const cls = type==='ok'?'status-ok':type==='err'?'status-err':'status-info';
+  const icon = type==='ok'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  el.innerHTML = '<div class="' + cls + '">' + icon + msg + '</div>';
+}
+
+function updateSetupBadge() {
+  const n = (!gToken?1:0) + (!msToken?1:0);
+  const b = document.getElementById('badge-setup');
+  if (b) { b.className = 'nbadge'+(n===0?' ok':''); b.textContent = n===0?'✓':n; }
+}
+
+// ── PWA Registration ──────────────────────────────────────────────────────────
+// Restore saved tokens after DOM is ready
+window.addEventListener('load', function() {
+  // Check if Google redirected back with an auth code
+  var urlParams = new URLSearchParams(window.location.search);
+  var authCode = urlParams.get('code');
+  var authError = urlParams.get('error');
+
+  if (authError) {
+    // User denied or error — clean up URL and show message
+    window.history.replaceState({}, document.title, window.location.pathname);
+    showPanel('setup', null);
+    setTimeout(function() {
+      showStatus('g-status', 'err', 'Google sign-in was cancelled or denied.');
+    }, 500);
+  } else if (authCode) {
+    // Got the code — clean up URL immediately so it doesn't show in address bar
+    window.history.replaceState({}, document.title, window.location.pathname);
+    // Navigate to setup panel to show progress
+    showPanel('setup', null);
+    syncBottomNav('setup');
+    // Exchange the code for tokens via Netlify function
+    exchangeGoogleCode(authCode);
+  }
+
+  // Restore keys — check localStorage first (persistent), fall back to sessionStorage
+  try {
+    var remember = localStorage.getItem('jd_remember') === 'true';
+
+    // Restore remember checkbox state
+    var cb = document.getElementById('remember-keys');
+    if (cb) cb.checked = remember;
+
+    // Restore Anthropic key
+    var savedApiKey = (remember ? localStorage.getItem('jd_anthropic_key') : null)
+                   || sessionStorage.getItem('jd_anthropic_key');
+    if (savedApiKey) {
+      var keyInput = document.getElementById('anthropic-key');
+      if (keyInput) { keyInput.value = savedApiKey; onAnthropicKeyChange(); }
+    }
+
+    // Restore Google Client ID
+    var savedCid = (remember ? localStorage.getItem('jd_gclient_id') : null)
+                || sessionStorage.getItem('jd_gclient_id');
+    if (savedCid) {
+      var cidInput = document.getElementById('g-client-id');
+      if (cidInput) cidInput.value = savedCid;
+    }
+
+    // Restore Google token
+    var savedG = (remember ? localStorage.getItem('jd_gtoken') : null)
+              || sessionStorage.getItem('jd_gtoken');
+    var savedRefresh = (remember ? localStorage.getItem('jd_refresh_token') : null)
+                    || sessionStorage.getItem('jd_refresh_token');
+    if (savedG) {
+      gToken = savedG;
+      onGoogleOk();
+      if (savedRefresh) {
+        // Trigger a refresh immediately to get a fresh token
+        scheduleTokenRefresh(10); // refresh after 10 seconds
+      }
+    }
+
+    // Restore Microsoft token
+    var savedMs = (remember ? localStorage.getItem('jd_mstoken') : null)
+               || sessionStorage.getItem('jd_mstoken');
+    if (savedMs) { msToken = savedMs; onMsOk(); }
+
+  } catch(e) { console.log('Restore error:', e); }
+
+  // Show bottom nav on mobile
+  if (window.innerWidth <= 768) {
+    var nav = document.getElementById('bottom-nav');
+    if (nav) nav.style.display = 'flex';
+    // Add padding to main content
+    var main = document.getElementById('main');
+    if (main) main.style.paddingBottom = '70px';
+  }
+
+  // Restore saved tokens
+  try {
+    var savedG = sessionStorage.getItem('jd_gtoken');
+    if (savedG) {
+      gToken = savedG;
+      onGoogleOk();
+    }
+    var savedMs = sessionStorage.getItem('jd_mstoken');
+    if (savedMs) {
+      msToken = savedMs;
+      onMsOk();
+    }
+  } catch(e) { console.log('Token restore error:', e); }
+});
+
+// Also show bottom nav on resize
+window.addEventListener('resize', function() {
+  var nav = document.getElementById('bottom-nav');
+  if (!nav) return;
+  if (window.innerWidth <= 768) {
+    nav.style.display = 'flex';
+    var main = document.getElementById('main');
+    if (main) main.style.paddingBottom = '70px';
+  } else {
+    nav.style.display = 'none';
+    var main = document.getElementById('main');
+    if (main) main.style.paddingBottom = '0';
+  }
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js', {scope: './'}).then(function(reg) {
+      console.log('JD Service Worker registered');
+    }).catch(function(err) {
+      console.log('SW registration failed:', err);
+    });
+  });
+}
+
+// Install prompt
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', function() {
+  document.getElementById('install-banner').style.display = 'none';
+  deferredPrompt = null;
+  toast('Junkyard Dog installed! Find it on your home screen.');
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function(result) {
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    });
+  } else {
+    // iOS instructions
+    toast('On iPhone: tap the Share button then "Add to Home Screen"');
+  }
+}
+
+// Deep link handling via URL hash
+function handleDeepLink() {
+  var hash = window.location.hash.replace('#','');
+  if (hash && ['chat','gcal','gmail','outlook','teams','setup'].includes(hash)) {
+    showPanel(hash, null);
+    syncBottomNav(hash);
+  }
+}
+window.addEventListener('hashchange', handleDeepLink);
+handleDeepLink();
+
+// Sync bottom nav active state
+function syncBottomNav(panel) {
+  document.querySelectorAll('.bnav-btn').forEach(function(b) {
+    b.classList.remove('active');
+    b.style.color = 'rgba(255,255,255,.5)';
+  });
+  var btn = document.getElementById('bnav-' + panel);
+  if (btn) { btn.classList.add('active'); btn.style.color = '#7c6af7'; }
+  // also sync topnav
+  document.querySelectorAll('.tnav').forEach(function(b) { b.classList.remove('active'); });
+  var tnav = document.getElementById('tnav-' + panel);
+  if (tnav) tnav.classList.add('active');
+  try { history.replaceState(null, '', '#' + panel); } catch(e) {}
+}
+
+// ── Bottom nav sync ────────────────────────────────────────────────────────
+function syncBottomNav(panel) {
+  document.querySelectorAll('.bnav-btn').forEach(function(b) {
+    b.classList.remove('active');
+    b.style.color = 'rgba(255,255,255,.5)';
+  });
+  var btn = document.getElementById('bnav-' + panel);
+  if (btn) { btn.classList.add('active'); btn.style.color = '#60a5fa'; }
+  try { history.replaceState(null, '', '#' + panel); } catch(e) {}
+}
+
+// Show/hide bottom nav based on screen width
+function updateNavVisibility() {
+  var nav = document.getElementById('bottom-nav');
+  var main = document.getElementById('main');
+  if (!nav) return;
+  if (window.innerWidth <= 768) {
+    nav.style.display = 'flex';
+    if (main) main.style.paddingBottom = '70px';
+  } else {
+    nav.style.display = 'none';
+    if (main) main.style.paddingBottom = '0';
+  }
+}
+window.addEventListener('resize', updateNavVisibility);
+
+// Restore tokens + show nav on load
+window.addEventListener('load', function() {
+  updateNavVisibility();
+  try {
+    var savedG = sessionStorage.getItem('jd_gtoken');
+    if (savedG) { gToken = savedG; onGoogleOk(); }
+    var savedMs = sessionStorage.getItem('jd_mstoken');
+    if (savedMs) { msToken = savedMs; onMsOk(); }
+  } catch(e) {}
+
+  // iOS install hint
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    setTimeout(function() {
+      var banner = document.getElementById('install-banner');
+      if (banner) {
+        banner.style.display = 'flex';
+        var txt = banner.querySelector('#install-banner-text');
+        if (txt) txt.textContent = 'Tap Share (↑) then "Add to Home Screen" to install JD';
+      }
+    }, 3000);
+  }
+});
+
+// PWA install prompt
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  var banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', function() {
+  var banner = document.getElementById('install-banner');
+  if (banner) banner.style.display = 'none';
+  deferredPrompt = null;
+  toast('Junkyard Dog installed!');
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function() { deferredPrompt = null; });
+  } else {
+    toast('On iPhone: tap Share then "Add to Home Screen"');
+  }
+}
+
+// Handle deep links
+function handleDeepLink() {
+  var hash = window.location.hash.replace('#','');
+  if (hash && ['chat','gcal','gmail','outlook','teams','setup'].includes(hash)) {
+    showPanel(hash, null);
+    syncBottomNav(hash);
+  }
+}
+window.addEventListener('hashchange', handleDeepLink);
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js', {scope: './'})
+    .then(function(reg) { console.log('SW registered'); })
+    .catch(function(err) { console.log('SW failed:', err); });
+}
+</script>
+
+<!-- Install Banner -->
+<div id="install-banner" style="display:none;background:#1a56db;color:#fff;padding:10px 16px;font-size:13px;align-items:center;gap:10px;position:fixed;top:0;left:0;right:0;z-index:300;">
+  <span id="install-banner-text">Add Junkyard Dog to your home screen</span>
+  <button onclick="installPWA()" style="margin-left:auto;padding:6px 14px;background:#fff;color:#1a56db;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Install</button>
+  <button onclick="document.getElementById('install-banner').style.display='none'" style="background:transparent;color:rgba(255,255,255,.8);border:none;font-size:20px;padding:0 4px;cursor:pointer;">&#x2715;</button>
+</div>
+
+<!-- Mobile bottom nav -->
+<div id="bottom-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,15,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.08);z-index:200;align-items:stretch;padding-bottom:env(safe-area-inset-bottom,0px);">
+  <button class="bnav-btn active" id="bnav-chat" onclick="showPanel('chat',this);syncBottomNav('chat')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:#7c6af7;padding:8px 2px;min-height:56px;font-family:inherit;transition:color .15s;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span style="font-size:10px;font-weight:500;">Chat</span>
+  </button>
+  <button class="bnav-btn" id="bnav-gcal" onclick="showPanel('gcal',this);syncBottomNav('gcal')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:rgba(240,239,245,0.35);padding:8px 2px;min-height:56px;font-family:inherit;transition:color .15s;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span style="font-size:10px;font-weight:500;">Calendar</span>
+  </button>
+  <button class="bnav-btn" id="bnav-gmail" onclick="showPanel('gmail',this);syncBottomNav('gmail')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:8px 2px;min-height:56px;font-family:inherit;position:relative;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    <span style="font-size:10px;font-weight:500;">Gmail</span>
+    <span id="bnav-gmail-badge" style="display:none;position:absolute;top:6px;right:calc(50% - 20px);background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:8px;padding:1px 5px;"></span>
+  </button>
+  <button class="bnav-btn" id="bnav-outlook" onclick="showPanel('outlook',this);syncBottomNav('outlook')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:rgba(240,239,245,0.35);padding:8px 2px;min-height:56px;font-family:inherit;transition:color .15s;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 12h8M8 8h8M8 16h4"/></svg>
+    <span style="font-size:10px;font-weight:500;">Outlook</span>
+  </button>
+  <button class="bnav-btn" id="bnav-setup" onclick="showPanel('setup',this);syncBottomNav('setup')" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:rgba(240,239,245,0.35);padding:8px 2px;min-height:56px;font-family:inherit;transition:color .15s;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>
+    <span style="font-size:10px;font-weight:500;">Setup</span>
+  </button>
+</div>
+
+</body>
+</html>
